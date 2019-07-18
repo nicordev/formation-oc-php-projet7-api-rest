@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,6 +34,23 @@ class ProductController extends AbstractController
     public function showAction(Product $product)
     {
         $data = $this->serializer->serialize($product, "json");
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    /**
+     * @Route(
+     *     "/products",
+     *     name = "product_list"
+     * )
+     * @Method({"GET"})
+     */
+    public function listAction(ProductRepository $repository)
+    {
+        $products = $repository->findAll();
+        $data = $this->serializer->serialize($products, "json");
         $response = new Response($data);
         $response->headers->set('Content-Type', 'application/json');
 
