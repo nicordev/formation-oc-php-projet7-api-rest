@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
+use FOS\RestBundle\Controller\Annotations\Delete;
 
 class ProductController extends AbstractController
 {
@@ -71,5 +72,19 @@ class ProductController extends AbstractController
         $manager->flush();
 
         return new Response("", Response::HTTP_CREATED);
+    }
+
+    /**
+     * @Delete(
+     *     "/products/{id}",
+     *     name = "product_delete"
+     * )
+     */
+    public function deleteAction(Product $product, EntityManagerInterface $manager)
+    {
+        $manager->remove($product);
+        $manager->flush();
+
+        return new Response("", Response::HTTP_OK);
     }
 }
