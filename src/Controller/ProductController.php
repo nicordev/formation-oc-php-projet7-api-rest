@@ -9,8 +9,9 @@ use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use FOS\RestBundle\Controller\Annotations as Rest;
+use FOS\RestBundle\Controller\Annotations\Get;
+use FOS\RestBundle\Controller\Annotations\Post;
 
 class ProductController extends AbstractController
 {
@@ -25,13 +26,13 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/products/{id}",
+     * @Get(
+     *     path = "/products/{id}",
      *     name = "product_show",
      *     requirements = {"id": "\d+"}
      * )
      */
-    public function showAction(Product $product)
+    public function getProductAction(Product $product)
     {
         $data = $this->serializer->serialize($product, "json");
         $response = new Response($data);
@@ -41,13 +42,12 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/products",
+     * @Get(
+     *     path = "/products",
      *     name = "product_list"
      * )
-     * @Method({"GET"})
      */
-    public function listAction(ProductRepository $repository)
+    public function getProductsAction(ProductRepository $repository)
     {
         $products = $repository->findAll();
         $data = $this->serializer->serialize($products, "json");
@@ -58,11 +58,10 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route(
+     * @Post(
      *     "/products",
      *     name = "product_create"
      * )
-     * @Method({"POST"})
      */
     public function createAction(Request $request, EntityManagerInterface $manager)
     {
