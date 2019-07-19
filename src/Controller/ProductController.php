@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use FOS\RestBundle\Controller\AbstractFOSRestController;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +15,7 @@ use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 
-class ProductController extends AbstractController
+class ProductController extends AbstractFOSRestController
 {
     /**
      * @var SerializerInterface
@@ -35,9 +36,9 @@ class ProductController extends AbstractController
      */
     public function getProductAction(Product $product)
     {
-        $data = $this->serializer->serialize($product, "json");
+        $view = $this->view($product, Response::HTTP_OK);
 
-        return $this->json($data);
+        return $this->handleView($view);
     }
 
     /**
@@ -49,9 +50,9 @@ class ProductController extends AbstractController
     public function getProductsAction(ProductRepository $repository)
     {
         $products = $repository->findAll();
-        $data = $this->serializer->serialize($products, "json");
+        $view = $this->view($products, Response::HTTP_OK);
 
-        return $this->json($data);
+        return $this->handleView($view);
     }
 
     /**
