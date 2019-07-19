@@ -36,10 +36,8 @@ class ProductController extends AbstractController
     public function getProductAction(Product $product)
     {
         $data = $this->serializer->serialize($product, "json");
-        $response = new Response($data);
-        $response->headers->set('Content-Type', 'application/json');
 
-        return $response;
+        return $this->json($data);
     }
 
     /**
@@ -52,10 +50,8 @@ class ProductController extends AbstractController
     {
         $products = $repository->findAll();
         $data = $this->serializer->serialize($products, "json");
-        $response = new Response($data);
-        $response->headers->set('Content-Type', 'application/json');
 
-        return $response;
+        return $this->json($data);
     }
 
     /**
