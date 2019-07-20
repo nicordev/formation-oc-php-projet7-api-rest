@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Helper\ObjectEditorTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -17,6 +18,8 @@ use FOS\RestBundle\Controller\Annotations\Delete;
 
 class ProductController extends AbstractFOSRestController
 {
+    use ObjectEditorTrait;
+
     /**
      * @var SerializerInterface
      */
@@ -84,21 +87,7 @@ class ProductController extends AbstractFOSRestController
         $data = $request->getContent();
         $editedProduct = $this->serializer->deserialize($data, "App\\Entity\\Product", "json");
 
-        if ($editedProduct->getBrand() !== null) {
-            $product->setBrand($editedProduct->getBrand());
-        }
-
-        if ($editedProduct->getModel() !== null) {
-            $product->setModel($editedProduct->getModel());
-        }
-
-        if ($editedProduct->getPrice() !== null) {
-            $product->setPrice($editedProduct->getPrice());
-        }
-
-        if ($editedProduct->getQuantity() !== null) {
-            $product->setQuantity($editedProduct->getQuantity());
-        }
+        $this->updateProperties($product, $editedProduct);
 
         $manager->flush();
         $view = $this->view($product, Response::HTTP_ACCEPTED);
