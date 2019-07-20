@@ -67,8 +67,43 @@ class ProductController extends AbstractFOSRestController
         $newProduct = $this->serializer->deserialize($data, "App\\Entity\\Product", "json");
         $manager->persist($newProduct);
         $manager->flush();
+        $view = $this->view($newProduct, Response::HTTP_CREATED);
 
-        return new Response("", Response::HTTP_CREATED);
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Post(
+     *     "/products/{id}",
+     *     name = "product_edit",
+     *     requirements = {"id": "\d+"}
+     * )
+     */
+    public function editAction(Request $request, Product $product, EntityManagerInterface $manager)
+    {
+        $data = $request->getContent();
+        $editedProduct = $this->serializer->deserialize($data, "App\\Entity\\Product", "json");
+
+        if ($editedProduct->getBrand() !== null) {
+            $product->setBrand($editedProduct->getBrand());
+        }
+
+        if ($editedProduct->getModel() !== null) {
+            $product->setModel($editedProduct->getModel());
+        }
+
+        if ($editedProduct->getPrice() !== null) {
+            $product->setPrice($editedProduct->getPrice());
+        }
+
+        if ($editedProduct->getQuantity() !== null) {
+            $product->setQuantity($editedProduct->getQuantity());
+        }
+
+        $manager->flush();
+        $view = $this->view($product, Response::HTTP_ACCEPTED);
+
+        return $this->handleView($view);
     }
 
     /**
@@ -81,7 +116,8 @@ class ProductController extends AbstractFOSRestController
     {
         $manager->remove($product);
         $manager->flush();
+        $view = $this->view($product, Response::HTTP_ACCEPTED);
 
-        return new Response("", Response::HTTP_OK);
+        return $this->handleView($view);
     }
 }
