@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Helper\ObjectEditorTrait;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -17,6 +18,8 @@ use FOS\RestBundle\Controller\Annotations\Delete;
 
 class CustomerController extends AbstractFOSRestController
 {
+    use ObjectEditorTrait;
+
     /**
      * @var SerializerInterface
      */
@@ -69,6 +72,26 @@ class CustomerController extends AbstractFOSRestController
         $manager->flush();
 
         $view = $this->view($newCustomer, Response::HTTP_CREATED);
+
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Post(
+     *     "/customers/{id}",
+     *     name = "customer_edit",
+     *     requirements = {"id": "\d+"}
+     * )
+     */
+    public function editAction(Request $request, Customer $customer, EntityManagerInterface $manager)
+    {
+        $data = $request->getContent();
+        $editedCustomer = $this->serializer->deserialize($data, "App\\Entity\\Customer", "json");
+
+        $this->updateProperties($customer, $editedCustomer);
+
+        $manager->flush();
+        $view = $this->view($customer, Response::HTTP_ACCEPTED);
 
         return $this->handleView($view);
     }
