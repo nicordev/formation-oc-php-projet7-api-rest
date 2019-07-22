@@ -8,13 +8,14 @@ use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use JMS\Serializer\SerializerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ProductController extends AbstractFOSRestController
 {
@@ -63,14 +64,23 @@ class ProductController extends AbstractFOSRestController
      *     "/products",
      *     name = "product_create"
      * )
+     * @ParamConverter("newProduct", converter="fos_rest.request_body")
      */
-    public function createAction(Request $request, EntityManagerInterface $manager)
+    public function createAction(Product $newProduct, EntityManagerInterface $manager)
     {
-        $data = $request->getContent();
-        $newProduct = $this->serializer->deserialize($data, "App\\Entity\\Product", "json");
         $manager->persist($newProduct);
         $manager->flush();
-        $view = $this->view($newProduct, Response::HTTP_CREATED);
+        $view = $this->view(
+            $newProduct,
+            Response::HTTP_CREATED,
+            ['Location' => $this->generateUrl(
+                'product_show',
+                [
+                    'id' => $newProduct->getId(),
+                    UrlGeneratorInterface::ABSOLUTE_URL
+                ]
+            )]
+        );
 
         return $this->handleView($view);
     }
