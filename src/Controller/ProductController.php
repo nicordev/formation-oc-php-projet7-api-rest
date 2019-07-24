@@ -132,10 +132,26 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_edit",
      *     requirements = {"id": "\d+"}
      * )
-     * @ParamConverter("product", converter="fos_rest.request_body")
+     * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
      */
-    public function editAction(Product $product, EntityManagerInterface $manager)
+    public function editAction(Product $product, Product $modifiedProduct, EntityManagerInterface $manager)
     {
+        if ($modifiedProduct->getBrand() !== null) {
+            $product->setBrand($modifiedProduct->getBrand());
+        }
+
+        if ($modifiedProduct->getModel() !== null) {
+            $product->setModel($modifiedProduct->getModel());
+        }
+
+        if ($modifiedProduct->getPrice() !== null) {
+            $product->setPrice($modifiedProduct->getPrice());
+        }
+
+        if ($modifiedProduct->getQuantity() !== null) {
+            $product->setQuantity($modifiedProduct->getQuantity());
+        }
+
         $manager->flush();
         $view = $this->view($product, Response::HTTP_ACCEPTED);
 
