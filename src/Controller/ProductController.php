@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Product;
-use App\Helper\ObjectEditorTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -19,8 +18,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ProductController extends AbstractFOSRestController
 {
-    use ObjectEditorTrait;
-
     /**
      * @var SerializerInterface
      */
