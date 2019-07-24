@@ -50,11 +50,52 @@ class ProductController extends AbstractFOSRestController
      *     path = "/products",
      *     name = "product_list"
      * )
+     * @Rest\QueryParam(
+     *     name = "criteria",
+     *     requirements = "id|price|quantity|brand|model",
+     *     default = "price",
+     *     description = "Sort order (asc or desc)"
+     * )
+     * @Rest\QueryParam(
+     *     name = "order",
+     *     requirements = "asc|desc",
+     *     default = "asc",
+     *     description = "Sort order (asc or desc)"
+     * )
+     * @Rest\QueryParam(
+     *     name = "page",
+     *     requirements = "\d+",
+     *     default = 1,
+     *     description = "Page number"
+     * )
+     * @Rest\QueryParam(
+     *     name = "itemsPerPage",
+     *     requirements = "\d+",
+     *     default = 5,
+     *     description = "Number of items per page"
+     * )
+     * @param ProductRepository $repository
+     * @param string $criteria
+     * @param string $order
+     * @param int $page
+     * @param int $itemsPerPage
+     * @return Response
      */
-    public function getProductsAction(ProductRepository $repository)
+    public function getProductsAction(
+        ProductRepository $repository,
+        string $criteria = "price",
+        string $order = "asc",
+        int $page = 1,
+        int $itemsPerPage = 5
+    )
     {
-        $products = $repository->findAll();
-        $view = $this->view($products, Response::HTTP_OK);
+        $products = $repository->getPage(
+            $page,
+            $itemsPerPage,
+            $criteria,
+            $order
+        );
+        $view = $this->view($products, Response::HTTP_OK, ["Count" => count($products)]);
 
         return $this->handleView($view);
     }
@@ -91,14 +132,10 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_edit",
      *     requirements = {"id": "\d+"}
      * )
+     * @ParamConverter("product", converter="fos_rest.request_body")
      */
-    public function editAction(Request $request, Product $product, EntityManagerInterface $manager)
+    public function editAction(Product $product, EntityManagerInterface $manager)
     {
-        $data = $request->getContent();
-        $editedProduct = $this->serializer->deserialize($data, "App\\Entity\\Product", "json");
-
-        $this->updateProperties($product, $editedProduct);
-
         $manager->flush();
         $view = $this->view($product, Response::HTTP_ACCEPTED);
 

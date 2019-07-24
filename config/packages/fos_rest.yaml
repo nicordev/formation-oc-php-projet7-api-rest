@@ -7,3 +7,4 @@ fos_rest:
       - { path: ^/, fallback_format: json, priorities: [json] }
   serializer:
     serialize_null: true
+  param_fetcher_listener: force
