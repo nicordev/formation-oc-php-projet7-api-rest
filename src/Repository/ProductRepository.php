@@ -43,19 +43,16 @@ class ProductRepository extends ServiceEntityRepository
         array $orderBy = ["price" => "ASC"],
         array $criteria = null,
         bool $exactSearch = true
-    )
-    {
+    ) {
         $this->paginator->update($pageNumber, $itemsPerPage, $this->count([]));
 
         if ($exactSearch) {
-
             return $this->findBy(
                 $criteria ?? [],
                 $orderBy,
                 $this->paginator->itemsPerPage,
                 $this->paginator->pagingOffset
             );
-
         } else {
             $column = array_key_first($criteria);
             $orderByColumn = array_key_first($orderBy);

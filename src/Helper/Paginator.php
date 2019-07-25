@@ -2,7 +2,6 @@
 
 namespace App\Helper;
 
-
 class Paginator
 {
     public $currentPage;

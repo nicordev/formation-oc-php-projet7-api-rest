@@ -2,7 +2,6 @@
 
 namespace App\Helper;
 
-
 use ReflectionObject;
 
 trait ObjectEditorTrait
@@ -27,7 +26,6 @@ trait ObjectEditorTrait
             if ($modifiedProperty) {
                 if ($property->isPublic()) {
                     $initialEntity->$propertyName = $modifiedProperty;
-
                 } else {
                     $setter = "set" . ucfirst($propertyName);
 
@@ -47,7 +45,8 @@ trait ObjectEditorTrait
      * @return null
      * @throws \ReflectionException
      */
-    private function getPropertyValue($object, string $propertyName) {
+    private function getPropertyValue($object, string $propertyName)
+    {
 
         if (isset($object->$propertyName) || property_exists(get_class($object), $propertyName)) {
             $reflectionObject = new ReflectionObject($object);

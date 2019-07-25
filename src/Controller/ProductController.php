@@ -102,8 +102,7 @@ class ProductController extends AbstractFOSRestController
         string $exact = "true",
         int $page = 1,
         int $itemsPerPage = 5
-    )
-    {
+    ) {
         if ($search !== null) {
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
