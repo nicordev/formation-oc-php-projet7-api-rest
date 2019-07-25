@@ -69,6 +69,11 @@ class ProductController extends AbstractFOSRestController
      *     description = "Requested brand or model. The query parameter *property* must be either brand or model to work."
      * )
      * @Rest\QueryParam(
+     *     name = "exact",
+     *     default = "true",
+     *     description = "If false, every products containing the search parameter will be returned. The search will be based on the property parameter value. If true, only products having the exact value of the search parameter will be returned. "
+     * )
+     * @Rest\QueryParam(
      *     name = "page",
      *     requirements = "\d+",
      *     default = 1,
@@ -84,6 +89,7 @@ class ProductController extends AbstractFOSRestController
      * @param string $property
      * @param string $order
      * @param string|null $search
+     * @param string $exact
      * @param int $page
      * @param int $itemsPerPage
      * @return Response
@@ -93,6 +99,7 @@ class ProductController extends AbstractFOSRestController
         string $property = "price",
         string $order = "asc",
         ?string $search = null,
+        string $exact = "true",
         int $page = 1,
         int $itemsPerPage = 5
     )
@@ -105,11 +112,14 @@ class ProductController extends AbstractFOSRestController
             }
         }
 
+        $exact === "false" ? $exactValue = false : $exactValue = true;
+
         $products = $repository->getPage(
             $page,
             $itemsPerPage,
             [$property => strtoupper($order)],
-            $criteria ?? null
+            $criteria ?? null,
+            $exactValue
         );
         $view = $this->view($products, Response::HTTP_OK, ["Count" => count($products)]);
 

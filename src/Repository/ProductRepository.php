@@ -28,29 +28,46 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get a page of products regarding to the number of products required per page and the page number
+     * Get a page of products regarding to the number of products required per page, the page number and some optional criteria
      *
      * @param int $pageNumber
      * @param int $itemsPerPage
      * @param array $orderBy
      * @param array $criteria
+     * @param bool $exactSearch
      * @return Product[]
      */
     public function getPage(
         int $pageNumber,
         int $itemsPerPage,
         array $orderBy = ["price" => "ASC"],
-        array $criteria = null
+        array $criteria = null,
+        bool $exactSearch = true
     )
     {
         $this->paginator->update($pageNumber, $itemsPerPage, $this->count([]));
 
-        return $this->findBy(
-            $criteria ?? [],
-            $orderBy,
-            $this->paginator->itemsPerPage,
-            $this->paginator->pagingOffset
-        );
+        if ($exactSearch) {
+
+            return $this->findBy(
+                $criteria ?? [],
+                $orderBy,
+                $this->paginator->itemsPerPage,
+                $this->paginator->pagingOffset
+            );
+
+        } else {
+            $column = array_key_first($criteria);
+            $orderByColumn = array_key_first($orderBy);
+            $criteriaValue = "%{$criteria[$column]}%";
+            $queryBuilder = $this->createQueryBuilder("p")
+                ->andWhere('p.' . $column . ' LIKE :criteria')
+                ->setParameter('criteria', $criteriaValue)
+                ->orderBy('p.' . $orderByColumn, $orderBy[$orderByColumn])
+                ->getQuery();
+
+            return $queryBuilder->execute();
+        }
     }
 
     // /**
