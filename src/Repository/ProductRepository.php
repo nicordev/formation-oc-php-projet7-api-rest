@@ -32,23 +32,22 @@ class ProductRepository extends ServiceEntityRepository
      *
      * @param int $pageNumber
      * @param int $itemsPerPage
-     * @param string $criteria
-     * @param string $order
+     * @param array $orderBy
+     * @param array $criteria
      * @return Product[]
      */
     public function getPage(
         int $pageNumber,
         int $itemsPerPage,
-        string $criteria = "price",
-        string $order = "asc"
+        array $orderBy = ["price" => "ASC"],
+        array $criteria = null
     )
     {
-        $order = strtoupper($order);
         $this->paginator->update($pageNumber, $itemsPerPage, $this->count([]));
 
         return $this->findBy(
-            [],
-            [$criteria => $order],
+            $criteria ?? [],
+            $orderBy,
             $this->paginator->itemsPerPage,
             $this->paginator->pagingOffset
         );

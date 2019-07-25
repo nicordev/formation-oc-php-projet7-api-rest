@@ -31,8 +31,12 @@ class ProductController extends AbstractFOSRestController
     /**
      * @Get(
      *     path = "/products/{id}",
-     *     name = "product_show",
+     *     name = "product_show_id",
      *     requirements = {"id": "\d+"}
+     * )
+     * @Get(
+     *     path = "/products/{model}",
+     *     name = "product_show_model"
      * )
      */
     public function getProductAction(Product $product)
@@ -48,7 +52,7 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_list"
      * )
      * @Rest\QueryParam(
-     *     name = "criteria",
+     *     name = "property",
      *     requirements = "id|price|quantity|brand|model",
      *     default = "price",
      *     description = "Sort order (asc or desc)"
@@ -58,6 +62,11 @@ class ProductController extends AbstractFOSRestController
      *     requirements = "asc|desc",
      *     default = "asc",
      *     description = "Sort order (asc or desc)"
+     * )
+     * @Rest\QueryParam(
+     *     name = "search",
+     *     default = null,
+     *     description = "Requested brand or model. The query parameter *property* must be either brand or model to work."
      * )
      * @Rest\QueryParam(
      *     name = "page",
@@ -72,25 +81,35 @@ class ProductController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @param ProductRepository $repository
-     * @param string $criteria
+     * @param string $property
      * @param string $order
+     * @param string|null $search
      * @param int $page
      * @param int $itemsPerPage
      * @return Response
      */
     public function getProductsAction(
         ProductRepository $repository,
-        string $criteria = "price",
+        string $property = "price",
         string $order = "asc",
+        ?string $search = null,
         int $page = 1,
         int $itemsPerPage = 5
     )
     {
+        if ($search !== null) {
+            if (in_array($property, ["brand", "model"])) {
+                $criteria = [$property => $search];
+            } else {
+                return new Response("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
+            }
+        }
+
         $products = $repository->getPage(
             $page,
             $itemsPerPage,
-            $criteria,
-            $order
+            [$property => strtoupper($order)],
+            $criteria ?? null
         );
         $view = $this->view($products, Response::HTTP_OK, ["Count" => count($products)]);
 
