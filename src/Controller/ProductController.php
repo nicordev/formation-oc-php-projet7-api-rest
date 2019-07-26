@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Exception\ResourceValidationException;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -142,9 +143,17 @@ class ProductController extends AbstractFOSRestController
     public function createAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
         if (count($violations)) {
-            $view = $this->view($violations, Response::HTTP_BAD_REQUEST);
+            $message = "The JSON sent contains invalid data. ";
 
-            return $this->handleView($view);
+            foreach ($violations as $violation) {
+                $message .= sprintf(
+                    "Field %s: %s ",
+                    $violation->getPropertyPath(),
+                    $violation->getMessage()
+                );
+            }
+
+            throw new ResourceValidationException($message);
         }
 
         $manager->persist($newProduct);
