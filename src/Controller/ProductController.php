@@ -15,6 +15,7 @@ use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ProductController extends AbstractFOSRestController
 {
@@ -130,17 +131,29 @@ class ProductController extends AbstractFOSRestController
      *     "/products",
      *     name = "product_create"
      * )
-     * @ParamConverter("newProduct", converter="fos_rest.request_body")
+     * @ParamConverter(
+     *     "newProduct",
+     *     converter="fos_rest.request_body",
+     *     options = {
+     *          "validator" = {"groups" = "Create"}
+     *     }
+     * )
      */
-    public function createAction(Product $newProduct, EntityManagerInterface $manager)
+    public function createAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
+        if (count($violations)) {
+            $view = $this->view($violations, Response::HTTP_BAD_REQUEST);
+
+            return $this->handleView($view);
+        }
+
         $manager->persist($newProduct);
         $manager->flush();
         $view = $this->view(
             $newProduct,
             Response::HTTP_CREATED,
             ['Location' => $this->generateUrl(
-                'product_show',
+                'product_show_id',
                 [
                     'id' => $newProduct->getId(),
                     UrlGeneratorInterface::ABSOLUTE_URL
