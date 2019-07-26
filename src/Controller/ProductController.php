@@ -21,16 +21,6 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 class ProductController extends AbstractFOSRestController
 {
     /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    public function __construct(SerializerInterface $serializer)
-    {
-        $this->serializer = $serializer;
-    }
-
-    /**
      * @Get(
      *     path = "/products/{id}",
      *     name = "product_show_id",
@@ -57,7 +47,7 @@ class ProductController extends AbstractFOSRestController
      *     name = "property",
      *     requirements = "id|price|quantity|brand|model",
      *     default = "price",
-     *     description = "Sort order (asc or desc)"
+     *     description = "Property name required to order results or do a search"
      * )
      * @Rest\QueryParam(
      *     name = "order",
@@ -113,7 +103,7 @@ class ProductController extends AbstractFOSRestController
             }
         }
 
-        $exact === "false" ? $exactValue = false : $exactValue = true;
+        $exactValue = $exact !== "false";
 
         $products = $repository->getPage(
             $page,
