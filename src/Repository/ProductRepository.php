@@ -61,6 +61,8 @@ class ProductRepository extends ServiceEntityRepository
                 ->andWhere('p.' . $column . ' LIKE :criteria')
                 ->setParameter('criteria', $criteriaValue)
                 ->orderBy('p.' . $orderByColumn, $orderBy[$orderByColumn])
+                ->setFirstResult($this->paginator->pagingOffset)
+                ->setMaxResults($this->paginator->itemsPerPage)
                 ->getQuery();
 
             return $queryBuilder->execute();
