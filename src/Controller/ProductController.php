@@ -7,7 +7,8 @@ use App\Exception\ResourceValidationException;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
-use JMS\Serializer\SerializerInterface;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -105,14 +106,32 @@ class ProductController extends AbstractFOSRestController
 
         $exactValue = $exact !== "false";
 
-        $products = $repository->getPage(
+        $paginatedProducts = $repository->getPage(
             $page,
             $itemsPerPage,
             [$property => strtoupper($order)],
             $criteria ?? null,
             $exactValue
         );
-        $view = $this->view($products, Response::HTTP_OK, ["Count" => count($products)]);
+        $products = $paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES];
+
+        $paginatedRepresentation = new PaginatedRepresentation(
+            new CollectionRepresentation($products),
+            "product_list",
+            [
+                "property" => $property,
+                "order" => $order,
+                "search" => $search,
+                "exact" => $exact,
+                "page" => $page,
+                "itemsPerPage" => $itemsPerPage
+            ],
+            $page,
+            $itemsPerPage,
+            $paginatedProducts[ProductRepository::KEY_PAGING_COUNT]
+        );
+
+        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
 
         return $this->handleView($view);
     }

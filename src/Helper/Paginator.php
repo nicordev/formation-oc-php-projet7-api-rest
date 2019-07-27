@@ -5,6 +5,8 @@ namespace App\Helper;
 class Paginator
 {
     public $currentPage;
+    public $nextPage;
+    public $previousPage;
     public $itemsPerPage;
     public $itemsCount;
     public $pagesCount;
@@ -24,18 +26,12 @@ class Paginator
         ?int $itemsCount = null,
         bool $fitCurrentPageInBoundaries = true
     ) {
-        $this->currentPage = $currentPage;
-        $this->itemsPerPage = $itemsPerPage;
-        $this->itemsCount = $itemsCount;
-        if ($itemsCount && $itemsPerPage) {
-            $this->pagesCount = self::countPages($itemsCount, $itemsPerPage);
-            if ($fitCurrentPageInBoundaries) {
-                $this->fitCurrentPageInBoundaries();
-            }
-        }
-        if ($currentPage && $itemsPerPage) {
-            $this->pagingOffset = self::calculatePagingOffset($currentPage, $itemsPerPage);
-        }
+        $this->update(
+            $currentPage,
+            $itemsPerPage,
+            $itemsCount,
+            $fitCurrentPageInBoundaries
+        );
     }
 
     /**
@@ -52,9 +48,15 @@ class Paginator
         ?int $itemsCount = null,
         bool $fitCurrentPageInBoundaries = true
     ) {
-        $this->currentPage = $currentPage;
-        $this->itemsPerPage = $itemsPerPage;
-        $this->itemsCount = $itemsCount;
+        if ($currentPage) {
+            $this->currentPage = $currentPage;
+        }
+        if ($itemsPerPage) {
+            $this->itemsPerPage = $itemsPerPage;
+        }
+        if ($itemsCount) {
+            $this->itemsCount = $itemsCount;
+        }
         if ($itemsCount && $itemsPerPage) {
             $this->pagesCount = self::countPages($itemsCount, $itemsPerPage);
             if ($fitCurrentPageInBoundaries) {
@@ -63,6 +65,10 @@ class Paginator
         }
         if ($currentPage && $itemsPerPage) {
             $this->pagingOffset = self::calculatePagingOffset($this->currentPage, $itemsPerPage); // Use of the object's attribute to stay in boundaries
+        }
+        if ($currentPage && $this->pagesCount) {
+            $this->nextPage = self::calculateNextPageNumber($currentPage, $this->pagesCount);
+            $this->previousPage = self::calculatePreviousPageNumber($currentPage, $this->pagesCount);
         }
     }
 
@@ -79,6 +85,42 @@ class Paginator
     }
 
     // Static
+
+    /**
+     * Calculate the next page number
+     *
+     * @param int $currentPage
+     * @param int $pagesCount
+     * @return int
+     */
+    public static function calculateNextPageNumber(int $currentPage, int $pagesCount): int
+    {
+        $nextPage = $currentPage + 1;
+
+        if ($nextPage > $pagesCount) {
+            return $currentPage;
+        }
+
+        return $nextPage;
+    }
+
+    /**
+     * Calculate the previous page number
+     *
+     * @param int $currentPage
+     * @param int $pagesCount
+     * @return int
+     */
+    public static function calculatePreviousPageNumber(int $currentPage, int $pagesCount): int
+    {
+        $previousPage = $currentPage - 1;
+
+        if ($previousPage < 1) {
+            return $currentPage;
+        }
+
+        return $previousPage;
+    }
 
     /**
      * Calculate the offset for paging
