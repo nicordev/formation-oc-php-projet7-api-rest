@@ -1,6 +1,7 @@
 .idea/
 .testing_stuff/
 php.ini
+server_start
 
 ###> symfony/framework-bundle ###
 /.env.local
