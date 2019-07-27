@@ -7,6 +7,8 @@ use App\Exception\ResourceValidationException;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -113,31 +115,23 @@ class ProductController extends AbstractFOSRestController
         );
         $products = $paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES];
 
-        $view = $this->view($products, Response::HTTP_OK, [
-            "Count" => count($products),
-            "Next-Page" => $this->generateUrl(
-                "product_list",
-                [
-                    "property" => $property,
-                    "order" => $order,
-                    "search" => $search,
-                    "exact" => $exact,
-                    "page" => $paginatedProducts[ProductRepository::KEY_PAGING_NEXT_PAGE],
-                    "itemsPerPage" => $itemsPerPage
-                ],
-                UrlGeneratorInterface::ABSOLUTE_URL),
-            "Previous-Page" => $this->generateUrl(
-                "product_list",
-                [
-                    "property" => $property,
-                    "order" => $order,
-                    "search" => $search,
-                    "exact" => $exact,
-                    "page" => $paginatedProducts[ProductRepository::KEY_PAGING_PREVIOUS_PAGE],
-                    "itemsPerPage" => $itemsPerPage
-                ],
-                UrlGeneratorInterface::ABSOLUTE_URL)
-        ]);
+        $paginatedRepresentation = new PaginatedRepresentation(
+            new CollectionRepresentation($products),
+            "product_list",
+            [
+                "property" => $property,
+                "order" => $order,
+                "search" => $search,
+                "exact" => $exact,
+                "page" => $page,
+                "itemsPerPage" => $itemsPerPage
+            ],
+            $page,
+            $itemsPerPage,
+            $paginatedProducts[ProductRepository::KEY_PAGING_COUNT]
+        );
+
+        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
 
         return $this->handleView($view);
     }
