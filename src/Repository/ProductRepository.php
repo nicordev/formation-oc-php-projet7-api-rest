@@ -15,6 +15,11 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ProductRepository extends ServiceEntityRepository
 {
+    public const KEY_PAGING_ENTITIES = "entities";
+    public const KEY_PAGING_COUNT = "pages_count";
+    public const KEY_PAGING_NEXT_PAGE = "next_page";
+    public const KEY_PAGING_PREVIOUS_PAGE = "previous_page";
+
     /**
      * @var Paginator
      */
@@ -28,14 +33,14 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get a page of products regarding to the number of products required per page, the page number and some optional criteria
+     * Get an array containing some paging information and an array of products regarding to the number of products required per page, the page number and some optional criteria
      *
      * @param int $pageNumber
      * @param int $itemsPerPage
      * @param array $orderBy
      * @param array $criteria
      * @param bool $exactSearch
-     * @return Product[]
+     * @return array
      */
     public function getPage(
         int $pageNumber,
@@ -47,7 +52,7 @@ class ProductRepository extends ServiceEntityRepository
         $this->paginator->update($pageNumber, $itemsPerPage, $this->count([]));
 
         if ($exactSearch) {
-            return $this->findBy(
+            $products =  $this->findBy(
                 $criteria ?? [],
                 $orderBy,
                 $this->paginator->itemsPerPage,
@@ -65,8 +70,15 @@ class ProductRepository extends ServiceEntityRepository
                 ->setMaxResults($this->paginator->itemsPerPage)
                 ->getQuery();
 
-            return $queryBuilder->execute();
+            $products = $queryBuilder->execute();
         }
+
+        return [
+            self::KEY_PAGING_ENTITIES => $products,
+            self::KEY_PAGING_COUNT => $this->paginator->pagesCount,
+            self::KEY_PAGING_NEXT_PAGE => $this->paginator->nextPage,
+            self::KEY_PAGING_PREVIOUS_PAGE => $this->paginator->previousPage
+        ];
     }
 
     // /**

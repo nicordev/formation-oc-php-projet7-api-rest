@@ -104,14 +104,40 @@ class ProductController extends AbstractFOSRestController
 
         $exactValue = $exact !== "false";
 
-        $products = $repository->getPage(
+        $paginatedProducts = $repository->getPage(
             $page,
             $itemsPerPage,
             [$property => strtoupper($order)],
             $criteria ?? null,
             $exactValue
         );
-        $view = $this->view($products, Response::HTTP_OK, ["Count" => count($products)]);
+        $products = $paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES];
+
+        $view = $this->view($products, Response::HTTP_OK, [
+            "Count" => count($products),
+            "Next-Page" => $this->generateUrl(
+                "product_list",
+                [
+                    "property" => $property,
+                    "order" => $order,
+                    "search" => $search,
+                    "exact" => $exact,
+                    "page" => $paginatedProducts[ProductRepository::KEY_PAGING_NEXT_PAGE],
+                    "itemsPerPage" => $itemsPerPage
+                ],
+                UrlGeneratorInterface::ABSOLUTE_URL),
+            "Previous-Page" => $this->generateUrl(
+                "product_list",
+                [
+                    "property" => $property,
+                    "order" => $order,
+                    "search" => $search,
+                    "exact" => $exact,
+                    "page" => $paginatedProducts[ProductRepository::KEY_PAGING_PREVIOUS_PAGE],
+                    "itemsPerPage" => $itemsPerPage
+                ],
+                UrlGeneratorInterface::ABSOLUTE_URL)
+        ]);
 
         return $this->handleView($view);
     }
