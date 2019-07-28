@@ -6,6 +6,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as Serializer;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
@@ -26,6 +27,29 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      )
  * )
  * @Hateoas\Relation(
+ *      "create",
+ *      href = @Hateoas\Route(
+ *          "product_create",
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "product_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "product_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
  *     "brand",
  *     embedded = @Hateoas\Embedded("expr(object.getBrand())")
  * )
@@ -36,11 +60,13 @@ class Product
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
@@ -49,6 +75,7 @@ class Product
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
@@ -57,6 +84,7 @@ class Product
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
@@ -65,6 +93,7 @@ class Product
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )

@@ -10,3 +10,12 @@ fos_rest:
   serializer:
     serialize_null: true
   param_fetcher_listener: force
+  view:
+    mime_types:
+      json: ['application/json', 'application/json;version=1.0', 'application/json;version=2.0']
+  versioning:
+    enabled: true
+    resolvers:
+      media_type: # Accept header
+        enabled: true
+        regex: '/(v|version)=(?P<version>[0-9\.]+)/'
