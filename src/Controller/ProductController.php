@@ -34,6 +34,8 @@ class ProductController extends AbstractFOSRestController
      */
     public function getProductAction(Product $product)
     {
+        $this->denyAccessUnlessGranted("ROLE_USER");
+
         $view = $this->view($product, Response::HTTP_OK);
 
         return $this->handleView($view);
