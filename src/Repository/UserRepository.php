@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Helper\Paginator;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -12,11 +12,11 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  * @method User[]    findAll()
  * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends ServiceEntityRepository
+class UserRepository extends PaginatedRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(RegistryInterface $registry, Paginator $paginator)
     {
-        parent::__construct($registry, User::class);
+        parent::__construct($registry, User::class, $paginator);
     }
 
     // /**

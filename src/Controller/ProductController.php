@@ -98,6 +98,8 @@ class ProductController extends AbstractFOSRestController
         int $page = 1,
         int $itemsPerPage = 5
     ) {
+        $this->denyAccessUnlessGranted("ROLE_USER");
+
         if ($search !== null) {
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
