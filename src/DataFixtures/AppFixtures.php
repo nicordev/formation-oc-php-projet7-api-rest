@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Product;
+use App\Entity\User;
 use App\Helper\ObjectEditorTrait;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -17,6 +18,7 @@ class AppFixtures extends Fixture
      * @var ParameterBagInterface
      */
     private $parameterBag;
+    private $manager;
 
     public function __construct(ParameterBagInterface $parameterBag)
     {
@@ -25,13 +27,60 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
+        $this->manager = $manager;
+        $this->loadProducts();
+        $this->loadUsers();
+    }
+
+    /**
+     * Generate fake products and load them in the database
+     *
+     * @throws \ReflectionException
+     */
+    private function loadProducts()
+    {
         $products = $this->getProductsFromDemo();
 
         foreach ($products as $product) {
-            $manager->persist($product);
+            $this->manager->persist($product);
         }
 
-        $manager->flush();
+        $this->manager->flush();
+    }
+
+    /**
+     * Generate fake users and load them in the database
+     */
+    private function loadUsers()
+    {
+        $userNames = [
+            "Extenso Telecom",
+            "AD Com",
+            "Phonever",
+            "Coriolis Telecom",
+            "Radiotel",
+            "Phone Store"
+        ];
+
+        foreach ($userNames as $userName) {
+            $user = new User();
+            $user->setEmail($this->generateEmail($userName))
+                ->setPassword("mdp")
+                ->setRoles(["ROLE_USER"])
+                ->setApiToken("test_token");
+            $this->manager->persist($user);
+        }
+
+        $this->manager->flush();
+    }
+
+    private function generateEmail(string $name)
+    {
+        $email = strtolower($name);
+        $email = str_replace(" ", ".", $email);
+        $domain = explode(".", $email)[0] . '.com';
+
+        return $email . '@' . $domain;
     }
 
     /**
