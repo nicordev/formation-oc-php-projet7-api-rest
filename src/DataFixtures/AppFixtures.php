@@ -62,14 +62,24 @@ class AppFixtures extends Fixture
             "Phone Store"
         ];
 
-        foreach ($userNames as $userName) {
+        for ($i = 0, $size = count($userNames); $i < $size; $i++) {
             $user = new User();
-            $user->setEmail($this->generateEmail($userName))
+            $user->setEmail($this->generateEmail($userNames[$i]))
                 ->setPassword("mdp")
+                ->setName($userNames[$i])
                 ->setRoles(["ROLE_USER"])
-                ->setApiToken("test_token");
+                ->setApiToken("test_token_{$i}");
             $this->manager->persist($user);
         }
+
+        // Test user
+        $testUser = new User();
+        $testUser->setEmail($this->generateEmail("Test User"))
+            ->setPassword("mdp")
+            ->setName("Test User")
+            ->setRoles(["ROLE_USER"])
+            ->setApiToken("test_token");
+        $this->manager->persist($testUser);
 
         $this->manager->flush();
     }
