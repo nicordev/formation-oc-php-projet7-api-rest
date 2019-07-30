@@ -49,10 +49,6 @@ use JMS\Serializer\Annotation as Serializer;
  *          absolute = true
  *      )
  * )
- * @Hateoas\Relation(
- *     "brand",
- *     embedded = @Hateoas\Embedded("expr(object.getBrand())")
- * )
  */
 class Product
 {
