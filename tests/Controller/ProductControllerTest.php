@@ -24,9 +24,23 @@ class ProductControllerTest extends WebTestCase
 
     public function setUp()
     {
-        $this->client = static::createClient();
-        $this->testProduct = $this->createTestProduct();
-        $this->serializer = SerializerBuilder::create()->build();
+        if (!$this->client) {
+            $this->client = static::createClient();
+        }
+        if (!$this->testProduct) {
+            $this->testProduct = $this->createTestProduct();
+        }
+        if (!$this->serializer) {
+            $this->serializer = SerializerBuilder::create()->build();
+        }
+    }
+
+    public function tearDown()
+    {
+        if ($this->testProduct) {
+            $this->deleteEntity($this->testProduct);
+            $this->testProduct = null;
+        }
     }
 
     public function testGetProductAction()
@@ -41,12 +55,35 @@ class ProductControllerTest extends WebTestCase
             ]
         );
         $response = $this->client->getResponse();
-
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
 //        $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json'); // Not working
         $product = json_decode($response->getContent());
+        $this->checkJsonProduct($product);
+    }
 
+    public function testDeleteAction()
+    {
+        $id = $this->testProduct->getId();
+        $this->client->request(
+            'DELETE',
+            "/products/{$this->testProduct->getId()}",
+            [],
+            [],
+            [
+                $this->keyHeaderToken => $this->testToken
+            ]
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $product = json_decode($response->getContent());
+        $this->checkJsonProduct($product);
+    }
+
+    // Private
+
+    private function checkJsonProduct($product)
+    {
         $this->assertObjectHasAttribute("id", $product);
         $this->assertObjectHasAttribute("model", $product);
         $this->assertObjectHasAttribute("brand", $product);
