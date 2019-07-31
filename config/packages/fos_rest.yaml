@@ -1,5 +1,9 @@
 # Read the documentation: https://symfony.com/doc/master/bundles/FOSRestBundle/index.html
 fos_rest:
+  exception:
+    enabled: true
+    codes:
+      { App\Exception\ResourceValidationException: 400, \Exception: 500 }
   body_converter:
     enabled: true
     validate: true

@@ -66,6 +66,7 @@ class AppFixtures extends Fixture
         $product = new Product();
 
         $this->updateProperties($product, $datum);
+        $product->setModel(str_replace(" ", "-", $product->getModel()));
         $product->setQuantity(mt_rand(10, 10000));
         $product->setPrice(mt_rand(10000, 100000));
 
