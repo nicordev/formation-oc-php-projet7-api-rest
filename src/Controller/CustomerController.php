@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -12,10 +13,14 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class CustomerController extends AbstractFOSRestController
 {
+    use ViolationsTrait;
+
     /**
      * @Get(
      *     path = "/customers/{id}",
@@ -59,12 +64,22 @@ class CustomerController extends AbstractFOSRestController
      */
     public function createAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
-        $data = $request->getContent();
-        $newCustomer = $this->serializer->deserialize($data, "App\\Entity\\Customer", "json");
+        $this->handleViolations($violations);
+
         $manager->persist($newCustomer);
         $manager->flush();
 
-        $view = $this->view($newCustomer, Response::HTTP_CREATED);
+        $view = $this->view(
+            $newCustomer,
+            Response::HTTP_CREATED,
+            ['Location' => $this->generateUrl(
+                'customer_show',
+                [
+                    'id' => $newCustomer->getId(),
+                    UrlGeneratorInterface::ABSOLUTE_URL
+                ]
+            )]
+        );
 
         return $this->handleView($view);
     }
@@ -75,13 +90,22 @@ class CustomerController extends AbstractFOSRestController
      *     name = "customer_edit",
      *     requirements = {"id": "\d+"}
      * )
+     * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
      */
-    public function editAction(Request $request, Customer $customer, EntityManagerInterface $manager)
+    public function editAction(Customer $customer, Customer $modifiedCustomer, EntityManagerInterface $manager)
     {
-        $data = $request->getContent();
-        $editedCustomer = $this->serializer->deserialize($data, Customer::class, "json");
-
-        $this->updateProperties($customer, $editedCustomer);
+        if ($modifiedCustomer->getName() !== null) {
+            $customer->setName($modifiedCustomer->getName());
+        }
+        if ($modifiedCustomer->getSurname() !== null) {
+            $customer->setSurname($modifiedCustomer->getSurname());
+        }
+        if ($modifiedCustomer->getEmail() !== null) {
+            $customer->setEmail($modifiedCustomer->getEmail());
+        }
+        if ($modifiedCustomer->getAddress() !== null) {
+            $customer->setAddress($modifiedCustomer->getAddress());
+        }
 
         $manager->flush();
         $view = $this->view($customer, Response::HTTP_ACCEPTED);
@@ -99,8 +123,7 @@ class CustomerController extends AbstractFOSRestController
     {
         $manager->remove($customer);
         $manager->flush();
-
-        $view = $this->view($customer, Response::HTTP_OK);
+        $view = $this->view($customer, Response::HTTP_ACCEPTED);
 
         return $this->handleView($view);
     }
