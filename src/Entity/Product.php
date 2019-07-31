@@ -26,33 +26,6 @@ use JMS\Serializer\Annotation as Serializer;
  *          absolute = true
  *      )
  * )
- * @Hateoas\Relation(
- *      "create",
- *      href = @Hateoas\Route(
- *          "product_create",
- *          absolute = true
- *      )
- * )
- * @Hateoas\Relation(
- *      "edit",
- *      href = @Hateoas\Route(
- *          "product_edit",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      )
- * )
- * @Hateoas\Relation(
- *      "delete",
- *      href = @Hateoas\Route(
- *          "product_delete",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      )
- * )
- * @Hateoas\Relation(
- *     "brand",
- *     embedded = @Hateoas\Embedded("expr(object.getBrand())")
- * )
  */
 class Product
 {

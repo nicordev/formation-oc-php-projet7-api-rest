@@ -2,11 +2,13 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Helper\ObjectEditorTrait;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
+use Faker\Factory;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AppFixtures extends Fixture
@@ -14,11 +16,12 @@ class AppFixtures extends Fixture
     use ObjectEditorTrait;
 
     private $productsCount = 100;
+    private $customersCount = 100;
+    private $manager;
     /**
      * @var ParameterBagInterface
      */
     private $parameterBag;
-    private $manager;
 
     public function __construct(ParameterBagInterface $parameterBag)
     {
@@ -28,24 +31,9 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $this->manager = $manager;
-        $this->loadProducts();
         $this->loadUsers();
-    }
-
-    /**
-     * Generate fake products and load them in the database
-     *
-     * @throws \ReflectionException
-     */
-    private function loadProducts()
-    {
-        $products = $this->getProductsFromDemo();
-
-        foreach ($products as $product) {
-            $this->manager->persist($product);
-        }
-
-        $this->manager->flush();
+        $this->loadProducts();
+        $this->loadCustomers();
     }
 
     /**
@@ -84,13 +72,37 @@ class AppFixtures extends Fixture
         $this->manager->flush();
     }
 
-    private function generateEmail(string $name)
+    private function loadCustomers()
     {
-        $email = strtolower($name);
-        $email = str_replace(" ", ".", $email);
-        $domain = explode(".", $email)[0] . '.com';
+        $faker = Factory::create("fr_FR");
 
-        return $email . '@' . $domain;
+        for ($i = 0; $i < $this->customersCount; $i++) {
+            $customer = new Customer();
+            $customer->setName($faker->firstName);
+            $customer->setSurname($faker->lastName);
+            $customer->setEmail($faker->email);
+            $customer->setAddress($faker->address);
+
+            $this->manager->persist($customer);
+        }
+
+        $this->manager->flush();
+    }
+
+    /**
+     * Generate fake products and load them in the database
+     *
+     * @throws \ReflectionException
+     */
+    private function loadProducts()
+    {
+        $products = $this->getProductsFromDemo();
+
+        foreach ($products as $product) {
+            $this->manager->persist($product);
+        }
+
+        $this->manager->flush();
     }
 
     /**
@@ -125,6 +137,7 @@ class AppFixtures extends Fixture
         $product = new Product();
 
         $this->updateProperties($product, $datum);
+        $product->setModel(str_replace(" ", "-", $product->getModel()));
         $product->setQuantity(mt_rand(10, 10000));
         $product->setPrice(mt_rand(10000, 100000));
 

@@ -1,21 +1,25 @@
 # Read the documentation: https://symfony.com/doc/master/bundles/FOSRestBundle/index.html
 fos_rest:
-  body_converter:
-    enabled: true
-    validate: true
-    validation_errors_argument: violations
-  format_listener:
-    rules:
-      - { path: ^/, fallback_format: json, priorities: [json] }
-  serializer:
-    serialize_null: true
-  param_fetcher_listener: force
-  view:
-    mime_types:
-      json: ['application/json', 'application/json;version=1.0', 'application/json;version=2.0']
-  versioning:
-    enabled: true
-    resolvers:
-      media_type: # Accept header
+    exception:
         enabled: true
-        regex: '/(v|version)=(?P<version>[0-9\.]+)/'
+        codes:
+          { App\Exception\ResourceValidationException: 400 }
+    body_converter:
+        enabled: true
+        validate: true
+        validation_errors_argument: violations
+    format_listener:
+        rules:
+            - { path: ^/, fallback_format: json, priorities: [json] }
+    serializer:
+        serialize_null: true
+    param_fetcher_listener: force
+    view:
+        mime_types:
+            json: ['application/json', 'application/json;version=1.0', 'application/json;version=2.0']
+    versioning:
+        enabled: true
+        resolvers:
+            media_type: # Accept header
+                enabled: true
+                regex: '/(v|version)=(?P<version>[0-9\.]+)/'

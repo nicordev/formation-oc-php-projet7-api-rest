@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Exception\ResourceValidationException;
+use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -21,6 +22,8 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ProductController extends AbstractFOSRestController
 {
+    use ViolationsTrait;
+
     /**
      * @Get(
      *     path = "/products/{id}",
@@ -75,7 +78,7 @@ class ProductController extends AbstractFOSRestController
      *     description = "Page number"
      * )
      * @Rest\QueryParam(
-     *     name = "itemsPerPage",
+     *     name = "quantity",
      *     requirements = "\d+",
      *     default = 5,
      *     description = "Number of items per page"
@@ -86,21 +89,21 @@ class ProductController extends AbstractFOSRestController
      * @param string|null $search
      * @param string $exact
      * @param int $page
-     * @param int $itemsPerPage
+     * @param int $quantity
      * @return Response
      */
     public function getProductsAction(
         ProductRepository $repository,
-        string $property = "price",
-        string $order = "asc",
-        ?string $search = null,
-        string $exact = "true",
-        int $page = 1,
-        int $itemsPerPage = 5
+        string $property,
+        string $order,
+        ?string $search,
+        string $exact,
+        int $page,
+        int $quantity
     ) {
         $this->denyAccessUnlessGranted("ROLE_USER");
 
-        if ($search !== null) {
+        if (!empty($search)) {
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
             } else {
@@ -112,7 +115,7 @@ class ProductController extends AbstractFOSRestController
 
         $paginatedProducts = $repository->getPage(
             $page,
-            $itemsPerPage,
+            $quantity,
             [$property => strtoupper($order)],
             $criteria ?? null,
             $exactValue
@@ -128,10 +131,10 @@ class ProductController extends AbstractFOSRestController
                 "search" => $search,
                 "exact" => $exact,
                 "page" => $page,
-                "itemsPerPage" => $itemsPerPage
+                "quantity" => $quantity
             ],
             $page,
-            $itemsPerPage,
+            $quantity,
             $paginatedProducts[ProductRepository::KEY_PAGING_COUNT]
         );
 
@@ -155,19 +158,7 @@ class ProductController extends AbstractFOSRestController
      */
     public function createAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
-        if (count($violations)) {
-            $message = "The JSON sent contains invalid data. ";
-
-            foreach ($violations as $violation) {
-                $message .= sprintf(
-                    "Field %s: %s ",
-                    $violation->getPropertyPath(),
-                    $violation->getMessage()
-                );
-            }
-
-            throw new ResourceValidationException($message);
-        }
+        $this->handleViolations($violations);
 
         $manager->persist($newProduct);
         $manager->flush();
