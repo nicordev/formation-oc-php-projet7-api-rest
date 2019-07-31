@@ -86,7 +86,7 @@ class CustomerController extends AbstractFOSRestController
     public function editAction(Request $request, Customer $customer, EntityManagerInterface $manager)
     {
         $data = $request->getContent();
-        $editedCustomer = $this->serializer->deserialize($data, "App\\Entity\\Customer", "json");
+        $editedCustomer = $this->serializer->deserialize($data, Customer::class, "json");
 
         $this->updateProperties($customer, $editedCustomer);
 
