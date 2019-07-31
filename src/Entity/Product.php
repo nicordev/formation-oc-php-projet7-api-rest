@@ -2,10 +2,53 @@
 
 namespace App\Entity;
 
+
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as Serializer;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "product_show_id",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "product_show_model",
+ *          parameters = { "model" = "expr(object.getModel())" },
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "create",
+ *      href = @Hateoas\Route(
+ *          "product_create",
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "product_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "product_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      )
+ * )
  */
 class Product
 {
@@ -13,26 +56,43 @@ class Product
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Since("1.0")
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $model;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Since("1.0")
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $brand;
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $price;
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $quantity;
 

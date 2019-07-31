@@ -2,11 +2,17 @@
 
 namespace App\Helper;
 
-
 use ReflectionObject;
 
 trait ObjectEditorTrait
 {
+    /**
+     * Update the properties value of an object with the values coming from another object
+     *
+     * @param $initialEntity
+     * @param $modifiedEntity
+     * @throws \ReflectionException
+     */
     public function updateProperties($initialEntity, $modifiedEntity)
     {
         $reflectionEntity = new ReflectionObject($initialEntity);
@@ -20,7 +26,6 @@ trait ObjectEditorTrait
             if ($modifiedProperty) {
                 if ($property->isPublic()) {
                     $initialEntity->$propertyName = $modifiedProperty;
-
                 } else {
                     $setter = "set" . ucfirst($propertyName);
 
@@ -32,7 +37,16 @@ trait ObjectEditorTrait
         }
     }
 
-    private function getPropertyValue($object, string $propertyName) {
+    /**
+     * Get the value of a property from its name
+     *
+     * @param $object
+     * @param string $propertyName
+     * @return null
+     * @throws \ReflectionException
+     */
+    private function getPropertyValue($object, string $propertyName)
+    {
 
         if (isset($object->$propertyName) || property_exists(get_class($object), $propertyName)) {
             $reflectionObject = new ReflectionObject($object);
