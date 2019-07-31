@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomerRepository")
@@ -18,26 +19,33 @@ class Customer
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $surname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
-     */
-    private $password;
-
-    /**
-     * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      */
     private $address;
 
@@ -78,18 +86,6 @@ class Customer
     public function setEmail(string $email): self
     {
         $this->email = $email;
-
-        return $this;
-    }
-
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
 
         return $this;
     }

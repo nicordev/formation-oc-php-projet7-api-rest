@@ -3,33 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
-use App\Helper\ObjectEditorTrait;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
-use JMS\Serializer\SerializerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CustomerController extends AbstractFOSRestController
 {
-    use ObjectEditorTrait;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    public function __construct(SerializerInterface $serializer)
-    {
-        $this->serializer = $serializer;
-    }
-
     /**
      * @Get(
      *     path = "/customers/{id}",
@@ -63,8 +49,15 @@ class CustomerController extends AbstractFOSRestController
      *     "/customers",
      *     name = "customer_create"
      * )
+     * @ParamConverter(
+     *     "newCustomer",
+     *     converter="fos_rest.request_body",
+     *     options = {
+     *          "validator" = {"groups" = "Create"}
+     *     }
+     * )
      */
-    public function createAction(Request $request, EntityManagerInterface $manager)
+    public function createAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
         $data = $request->getContent();
         $newCustomer = $this->serializer->deserialize($data, "App\\Entity\\Customer", "json");
