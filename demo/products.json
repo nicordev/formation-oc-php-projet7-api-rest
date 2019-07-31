@@ -1,0 +1,106 @@
+[
+    {
+        "brand": "apple",
+        "model": "iphone 4s"
+    },
+    {
+        "brand": "apple",
+        "model": "iphone 5"
+    },
+    {
+        "brand": "apple",
+        "model": "iphone 5c"
+    },
+    {
+        "brand": "apple",
+        "model": "iphone 6"
+    },
+    {
+        "brand": "apple",
+        "model": "iphone 7"
+    },
+    {
+        "brand": "apple",
+        "model": "iphone x"
+    },
+    {
+        "brand": "samsung",
+        "model": "galaxy s8"
+    },
+    {
+        "brand": "samsung",
+        "model": "galaxy s7"
+    },
+    {
+        "brand": "samsung",
+        "model": "galaxy s9"
+    },
+    {
+        "brand": "samsung",
+        "model": "galaxy s10"
+    },
+    {
+        "brand": "samsung",
+        "model": "galaxy a40"
+    },
+    {
+        "brand": "samsung",
+        "model": "galaxy a50"
+    },
+    {
+        "brand": "huawei",
+        "model": "y5"
+    },
+    {
+        "brand": "huawei",
+        "model": "y6"
+    },
+    {
+        "brand": "huawei",
+        "model": "y7"
+    },
+    {
+        "brand": "huawei",
+        "model": "p8"
+    },
+    {
+        "brand": "huawei",
+        "model": "p9"
+    },
+    {
+        "brand": "huawei",
+        "model": "p10"
+    },
+    {
+        "brand": "huawei",
+        "model": "p20"
+    },
+    {
+        "brand": "huawei",
+        "model": "p30"
+    },
+    {
+        "brand": "sony",
+        "model": "xperia l3"
+    },
+    {
+        "brand": "ulefone",
+        "model": "armor x"
+    },
+    {
+        "brand": "ulefone",
+        "model": "s10 pro"
+    },
+    {
+        "brand": "doogee",
+        "model": "s30"
+    },
+    {
+        "brand": "doogee",
+        "model": "x50l"
+    },
+    {
+        "brand": "blackview",
+        "model": "bv5500"
+    }
+]
