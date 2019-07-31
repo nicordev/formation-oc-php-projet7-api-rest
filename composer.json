@@ -6,7 +6,6 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "friendsofsymfony/rest-bundle": "^2.5",
-        "fzaninotto/faker": "^1.8",
         "jms/serializer-bundle": "^3.4",
         "sensio/framework-extra-bundle": "^5.4",
         "symfony/apache-pack": "^1.0",
@@ -22,6 +21,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.2",
+        "fzaninotto/faker": "^1.8",
         "symfony/maker-bundle": "^1.12",
         "symfony/web-server-bundle": "4.3.*"
     },
