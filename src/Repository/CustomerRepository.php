@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Customer;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Helper\Paginator;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -12,11 +12,11 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  * @method Customer[]    findAll()
  * @method Customer[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CustomerRepository extends ServiceEntityRepository
+class CustomerRepository extends PaginatedRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(RegistryInterface $registry, Paginator $paginator)
     {
-        parent::__construct($registry, Customer::class);
+        parent::__construct($registry, Customer::class, $paginator);
     }
 
     // /**
