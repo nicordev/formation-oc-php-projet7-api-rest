@@ -5,7 +5,19 @@ namespace App\Response;
 
 use App\Entity\Product;
 use JMS\Serializer\Annotation as Serializer;
+use Hateoas\Configuration\Annotation as Hateoas;
 
+/**
+ * Class DeleteProductResponse
+ * @package App\Response
+ * @Hateoas\Relation(
+ *      "create",
+ *      href = @Hateoas\Route(
+ *          "product_create",
+ *          absolute = true
+ *      )
+ * )
+ */
 class DeleteProductResponse
 {
     /**
