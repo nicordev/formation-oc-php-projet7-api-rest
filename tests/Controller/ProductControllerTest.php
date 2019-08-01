@@ -57,9 +57,8 @@ class ProductControllerTest extends WebTestCase
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
-//        $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json'); // Not working
-        $product = json_decode($response->getContent());
-        $this->checkJsonProduct($product);
+        $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json');
+        $this->checkJsonProduct($product, true);
     }
 
     public function testDeleteAction()
@@ -75,25 +74,35 @@ class ProductControllerTest extends WebTestCase
             ]
         );
         $response = $this->client->getResponse();
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
-        $product = json_decode($response->getContent());
-        $this->checkJsonProduct($product);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $responseData = $this->serializer->deserialize($response->getContent(), "array", "json");
+        $this->checkJsonProduct($responseData["deleted_entity"]);
     }
 
     // Private
 
-    private function checkJsonProduct($product)
+    private function checkJsonProduct($product, bool $checkValues = false)
     {
-        $this->assertObjectHasAttribute("id", $product);
-        $this->assertObjectHasAttribute("model", $product);
-        $this->assertObjectHasAttribute("brand", $product);
-        $this->assertObjectHasAttribute("price", $product);
-        $this->assertObjectHasAttribute("quantity", $product);
+        if (is_array($product)) {
+            $this->assertArrayHasKey("id", $product);
+            $this->assertArrayHasKey("model", $product);
+            $this->assertArrayHasKey("brand", $product);
+            $this->assertArrayHasKey("price", $product);
+            $this->assertArrayHasKey("quantity", $product);
 
-        $this->assertEquals($this->testProduct->getModel(), $product->model);
-        $this->assertEquals($this->testProduct->getBrand(), $product->brand);
-        $this->assertEquals($this->testProduct->getPrice(), $product->price);
-        $this->assertEquals($this->testProduct->getQuantity(), $product->quantity);
+            $this->assertEquals($this->testProduct->getModel(), $product["model"]);
+            $this->assertEquals($this->testProduct->getBrand(), $product["brand"]);
+            $this->assertEquals($this->testProduct->getPrice(), $product["price"]);
+            $this->assertEquals($this->testProduct->getQuantity(), $product["quantity"]);
+        } else {
+            $this->assertInstanceOf(Product::class, $product);
+            if ($checkValues) {
+                $this->assertEquals($this->testProduct->getModel(), $product->getModel());
+                $this->assertEquals($this->testProduct->getBrand(), $product->getBrand());
+                $this->assertEquals($this->testProduct->getPrice(), $product->getPrice());
+                $this->assertEquals($this->testProduct->getQuantity(), $product->getQuantity());
+            }
+        }
     }
 
     /**

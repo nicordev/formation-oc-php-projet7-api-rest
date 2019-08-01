@@ -36,6 +36,7 @@ class Product
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      * @Serializer\Since("1.0")
+     * @Serializer\Type("integer")
      */
     private $id;
 
@@ -45,6 +46,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("string")
      */
     private $model;
 
@@ -54,6 +56,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("string")
      */
     private $brand;
 
@@ -63,6 +66,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("integer")
      */
     private $price;
 
@@ -72,6 +76,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("integer")
      */
     private $quantity;
 
