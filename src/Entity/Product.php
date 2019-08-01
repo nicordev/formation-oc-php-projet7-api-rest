@@ -16,7 +16,8 @@ use JMS\Serializer\Annotation as Serializer;
  *          "product_show_id",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  * @Hateoas\Relation(
  *      "self",
@@ -24,7 +25,8 @@ use JMS\Serializer\Annotation as Serializer;
  *          "product_show_model",
  *          parameters = { "model" = "expr(object.getModel())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  */
 class Product

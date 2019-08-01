@@ -217,12 +217,12 @@ class ProductController extends AbstractFOSRestController
      */
     public function deleteAction(Product $product, EntityManagerInterface $manager)
     {
-        $productWrapper = [
-            "message" => "The product {$product->getModel()} has been deleted.",
-            "deleted_entity" => clone $product
-        ];
         $manager->remove($product);
         $manager->flush();
+        $productWrapper = [
+            "message" => "The product {$product->getModel()} has been deleted.",
+            "deleted_entity" => $product
+        ];
         $view = $this->view($productWrapper, Response::HTTP_ACCEPTED);
 
         return $this->handleView($view);
