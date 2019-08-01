@@ -59,7 +59,7 @@ class ProductControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
         $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json');
-        $this->checkJsonProduct($product, true);
+        $this->checkProduct($product, true);
     }
 
     public function testDeleteAction()
@@ -76,32 +76,22 @@ class ProductControllerTest extends WebTestCase
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $responseContentObject = $this->serializer->deserialize($response->getContent(), DeleteProductResponse::class, "json");
-        $this->checkJsonProduct($responseContentObject->entity);
+        $this->checkProduct($responseContentObject->entity);
     }
 
     // Private
 
-    private function checkJsonProduct($product, bool $checkValues = false)
+    /**
+     * Check if an object is a Product and can check if its values are the same than the test object's values
+     *
+     * @param $product
+     * @param bool $checkValues
+     */
+    private function checkProduct($product, bool $checkValues = false)
     {
-        if (is_array($product)) {
-            $this->assertArrayHasKey("id", $product);
-            $this->assertArrayHasKey("model", $product);
-            $this->assertArrayHasKey("brand", $product);
-            $this->assertArrayHasKey("price", $product);
-            $this->assertArrayHasKey("quantity", $product);
-
-            $this->assertEquals($this->testProduct->getModel(), $product["model"]);
-            $this->assertEquals($this->testProduct->getBrand(), $product["brand"]);
-            $this->assertEquals($this->testProduct->getPrice(), $product["price"]);
-            $this->assertEquals($this->testProduct->getQuantity(), $product["quantity"]);
-        } else {
-            $this->assertInstanceOf(Product::class, $product);
-            if ($checkValues) {
-                $this->assertEquals($this->testProduct->getModel(), $product->getModel());
-                $this->assertEquals($this->testProduct->getBrand(), $product->getBrand());
-                $this->assertEquals($this->testProduct->getPrice(), $product->getPrice());
-                $this->assertEquals($this->testProduct->getQuantity(), $product->getQuantity());
-            }
+        $this->assertInstanceOf(Product::class, $product);
+        if ($checkValues) {
+            $this->assertEquals(true, $product == $this->testProduct);
         }
     }
 
