@@ -5,6 +5,7 @@ namespace App\tests\Controller;
 require dirname(__DIR__) . "/HelperTest/HelperTestTrait.php";
 
 use App\Entity\Product;
+use App\Response\DeleteProductResponse;
 use App\tests\HelperTest\HelperTestTrait;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
@@ -63,7 +64,6 @@ class ProductControllerTest extends WebTestCase
 
     public function testDeleteAction()
     {
-        $id = $this->testProduct->getId();
         $this->client->request(
             'DELETE',
             "/products/{$this->testProduct->getId()}",
@@ -75,8 +75,8 @@ class ProductControllerTest extends WebTestCase
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $responseData = $this->serializer->deserialize($response->getContent(), "array", "json");
-        $this->checkJsonProduct($responseData["deleted_entity"]);
+        $responseContentObject = $this->serializer->deserialize($response->getContent(), DeleteProductResponse::class, "json");
+        $this->checkJsonProduct($responseContentObject->entity);
     }
 
     // Private

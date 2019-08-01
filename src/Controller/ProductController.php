@@ -6,6 +6,7 @@ use App\Entity\Product;
 use App\Exception\ResourceValidationException;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
+use App\Response\DeleteProductResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -223,7 +224,7 @@ class ProductController extends AbstractFOSRestController
             "message" => "The product {$product->getModel()} has been deleted.",
             "deleted_entity" => $product
         ];
-        $view = $this->view($productWrapper, Response::HTTP_OK);
+        $view = $this->view(new DeleteProductResponse($product), Response::HTTP_OK);
 
         return $this->handleView($view);
     }
