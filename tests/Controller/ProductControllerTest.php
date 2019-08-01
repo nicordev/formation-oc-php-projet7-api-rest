@@ -59,7 +59,7 @@ class ProductControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
         $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json');
-        $this->checkProduct($product, true);
+        $this->checkProduct($product);
     }
 
     public function testDeleteAction()
@@ -87,7 +87,7 @@ class ProductControllerTest extends WebTestCase
      * @param $product
      * @param bool $checkValues
      */
-    private function checkProduct($product, bool $checkValues = false)
+    private function checkProduct($product, bool $checkValues = true)
     {
         $this->assertInstanceOf(Product::class, $product);
         if ($checkValues) {
