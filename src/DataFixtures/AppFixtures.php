@@ -60,12 +60,12 @@ class AppFixtures extends Fixture
             $this->manager->persist($user);
         }
 
-        // Test user
+        // Test admin
         $testUser = new User();
-        $testUser->setEmail($this->generateEmail("Test User"))
+        $testUser->setEmail($this->generateEmail("Test Admin"))
             ->setPassword("mdp")
-            ->setName("Test User")
-            ->setRoles(["ROLE_USER"])
+            ->setName("Test Admin")
+            ->setRoles(["ROLE_ADMIN"])
             ->setApiToken("test_token");
         $this->manager->persist($testUser);
 

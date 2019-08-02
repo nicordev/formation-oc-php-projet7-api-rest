@@ -48,7 +48,7 @@ class ProductControllerTest extends WebTestCase
     {
         $this->client->request(
             'GET',
-            "/products/{$this->testProduct->getId()}",
+            "/api/products/{$this->testProduct->getId()}",
             [],
             [],
             [
@@ -66,7 +66,7 @@ class ProductControllerTest extends WebTestCase
     {
         $this->client->request(
             'DELETE',
-            "/products/{$this->testProduct->getId()}",
+            "/api/products/{$this->testProduct->getId()}",
             [],
             [],
             [

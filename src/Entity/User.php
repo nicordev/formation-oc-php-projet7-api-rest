@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -14,32 +16,45 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Serializer\Since("1.0")
+     * @Serializer\Type("integer")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
+     * @Serializer\Type("string")
      */
     private $email;
 
     /**
      * @ORM\Column(type="json")
+     * @Serializer\Type("array")
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Serializer\Type("string")
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", unique=true, length=500)
+     * @Serializer\Type("string")
      */
     private $apiToken;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
+     * @Serializer\Type("string")
      */
     private $name;
 

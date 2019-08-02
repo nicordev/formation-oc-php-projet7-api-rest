@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
@@ -12,9 +14,14 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class UserController extends AbstractFOSRestController
 {
+    use ViolationsTrait;
+
     /**
      * @Get(
      *     path = "/users/{id}",
@@ -72,6 +79,38 @@ class UserController extends AbstractFOSRestController
         );
 
         $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
+
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Post(
+     *     "/users",
+     *     name = "user_create"
+     * )
+     * @ParamConverter(
+     *     "newUser",
+     *     converter="fos_rest.request_body",
+     *     options = {
+     *          "validator" = {"groups" = "Create"}
+     *     }
+     * )
+     */
+    public function createAction(User $newUser, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
+    {
+        $this->handleViolations($violations);
+
+        $manager->persist($newUser);
+        $manager->flush();
+        $view = $this->view(
+            $newUser,
+            Response::HTTP_CREATED,
+            ['Location' => $this->generateUrl(
+                'product_show_id',
+                ['id' => $newUser->getId()],
+                UrlGeneratorInterface::ABSOLUTE_URL
+            )]
+        );
 
         return $this->handleView($view);
     }

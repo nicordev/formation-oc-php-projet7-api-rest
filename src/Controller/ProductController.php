@@ -27,19 +27,17 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Get(
-     *     path = "/products/{id}",
+     *     path = "/api/products/{id}",
      *     name = "product_show_id",
      *     requirements = {"id": "\d+"}
      * )
      * @Get(
-     *     path = "/products/{model}",
+     *     path = "/api/products/{model}",
      *     name = "product_show_model"
      * )
      */
     public function getProductAction(Product $product)
     {
-        $this->denyAccessUnlessGranted("ROLE_USER");
-
         $view = $this->view($product, Response::HTTP_OK);
 
         return $this->handleView($view);
@@ -47,7 +45,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Get(
-     *     path = "/products",
+     *     path = "/api/products",
      *     name = "product_list"
      * )
      * @Rest\QueryParam(
@@ -102,8 +100,6 @@ class ProductController extends AbstractFOSRestController
         int $page,
         int $quantity
     ) {
-        $this->denyAccessUnlessGranted("ROLE_USER");
-
         if (!empty($search)) {
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
@@ -146,7 +142,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/products",
+     *     "/api/admin/products",
      *     name = "product_create"
      * )
      * @ParamConverter(
@@ -166,13 +162,13 @@ class ProductController extends AbstractFOSRestController
         $view = $this->view(
             $newProduct,
             Response::HTTP_CREATED,
-            ['Location' => $this->generateUrl(
-                'product_show_id',
-                [
-                    'id' => $newProduct->getId(),
+            [
+                'Location' => $this->generateUrl(
+                    'product_show_id',
+                    ['id' => $newProduct->getId()],
                     UrlGeneratorInterface::ABSOLUTE_URL
-                ]
-            )]
+                )
+            ]
         );
 
         return $this->handleView($view);
@@ -180,7 +176,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/products/{id}",
+     *     "/api/admin/products/{id}",
      *     name = "product_edit",
      *     requirements = {"id": "\d+"}
      * )
@@ -212,7 +208,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Delete(
-     *     "/products/{id}",
+     *     "/api/admin/products/{id}",
      *     name = "product_delete"
      * )
      */
