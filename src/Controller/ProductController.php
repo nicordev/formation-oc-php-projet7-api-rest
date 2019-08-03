@@ -187,15 +187,12 @@ class ProductController extends AbstractFOSRestController
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
         }
-
         if ($modifiedProduct->getModel() !== null) {
             $product->setModel($modifiedProduct->getModel());
         }
-
         if ($modifiedProduct->getPrice() !== null) {
             $product->setPrice($modifiedProduct->getPrice());
         }
-
         if ($modifiedProduct->getQuantity() !== null) {
             $product->setQuantity($modifiedProduct->getQuantity());
         }
@@ -216,10 +213,6 @@ class ProductController extends AbstractFOSRestController
     {
         $manager->remove($product);
         $manager->flush();
-        $productWrapper = [
-            "message" => "The product {$product->getModel()} has been deleted.",
-            "deleted_entity" => $product
-        ];
         $view = $this->view(new DeleteProductResponse($product), Response::HTTP_OK);
 
         return $this->handleView($view);

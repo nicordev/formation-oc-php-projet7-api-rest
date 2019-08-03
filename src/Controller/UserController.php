@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Helper\TokenHandler;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
+use App\Response\DeleteUserResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -96,10 +98,17 @@ class UserController extends AbstractFOSRestController
      *     }
      * )
      */
-    public function createAction(User $newUser, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
+    public function createAction(
+        User $newUser,
+        EntityManagerInterface $manager,
+        ConstraintViolationListInterface $violations,
+        TokenHandler $tokenHandler
+    )
     {
         $this->handleViolations($violations);
 
+        $newUser->setApiToken($tokenHandler->generateToken());
+        $newUser->setPassword("No password from createAction");
         $manager->persist($newUser);
         $manager->flush();
         $view = $this->view(
@@ -111,6 +120,53 @@ class UserController extends AbstractFOSRestController
                 UrlGeneratorInterface::ABSOLUTE_URL
             )]
         );
+
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Post(
+     *     "/api/users/{id}",
+     *     name = "user_edit",
+     *     requirements = {"id": "\d+"}
+     * )
+     * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
+     */
+    public function editAction(User $user, User $modifiedUser, EntityManagerInterface $manager)
+    {
+        if ($modifiedUser->getName() !== null) {
+            $user->setName($modifiedUser->getName());
+        }
+        if ($modifiedUser->getEmail() !== null) {
+            $user->setEmail($modifiedUser->getEmail());
+        }
+        if (!empty($modifiedUser->getPassword())) {
+            $user->setPassword($modifiedUser->getPassword());
+        }
+        if (!empty($modifiedUser->getApiToken() !== null)) {
+            $user->setApiToken($modifiedUser->getApiToken());
+        }
+        if (!empty($modifiedUser->getRoles() !== null)) {
+            $user->setRoles($modifiedUser->getRoles());
+        }
+
+        $manager->flush();
+        $view = $this->view($user, Response::HTTP_ACCEPTED);
+
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Delete(
+     *     "/api/users/{id}",
+     *     name = "user_delete"
+     * )
+     */
+    public function deleteAction(User $user, EntityManagerInterface $manager)
+    {
+        $manager->remove($user);
+        $manager->flush();
+        $view = $this->view(new DeleteUserResponse($user), Response::HTTP_OK);
 
         return $this->handleView($view);
     }
