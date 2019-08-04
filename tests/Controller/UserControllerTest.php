@@ -41,6 +41,37 @@ class UserControllerTest extends WebTestCase
         $this->checkEntity($user, $this->testUser, true);
     }
 
+    public function testEditUserAction()
+    {
+        $modifiedUser = new User();
+        $modifiedUser->setName("test-modified-name");
+        $modifiedUser->setEmail("modified.user@test.com");
+        $modifiedUser->setPassword("modified.password");
+        $modifiedUser->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
+        $modifiedUser->setApiToken("test_modified_token");
+        $body = $this->serializer->serialize($modifiedUser, "json");
+
+        $this->client->request(
+            'POST',
+            "/api/users/{$this->testUser->getId()}",
+            [],
+            [],
+            [
+                "CONTENT_TYPE" => "application/json",
+                $this->keyHeaderToken => $this->testUserToken
+            ],
+            $body
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $responseUser = $this->serializer->deserialize($response->getContent(), User::class, "json");
+        $this->assertEquals($modifiedUser->getName(), $responseUser->getName());
+        $this->assertEquals($modifiedUser->getEmail(), $responseUser->getEmail());
+        $this->assertEquals($modifiedUser->getPassword(), $responseUser->getPassword());
+        $this->assertEquals($modifiedUser->getRoles(), $responseUser->getRoles());
+        $this->assertEquals($modifiedUser->getApiToken(), $responseUser->getApiToken());
+    }
+
     public function testDeleteAction()
     {
         $this->client->request(
