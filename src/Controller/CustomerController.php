@@ -6,6 +6,7 @@ use App\Entity\Customer;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
+use App\Response\DeleteCustomerResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -155,7 +156,7 @@ class CustomerController extends AbstractFOSRestController
     {
         $manager->remove($customer);
         $manager->flush();
-        $view = $this->view($customer, Response::HTTP_ACCEPTED);
+        $view = $this->view(new DeleteCustomerResponse($customer), Response::HTTP_OK);
 
         return $this->handleView($view);
     }

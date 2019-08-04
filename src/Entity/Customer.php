@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as Serializer;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomerRepository")
@@ -14,7 +15,8 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "customer_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  */
 class Customer
@@ -23,6 +25,7 @@ class Customer
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      */
     private $id;
 
@@ -31,6 +34,7 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("string")
      */
     private $name;
 
@@ -39,6 +43,7 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("string")
      */
     private $surname;
 
@@ -47,6 +52,7 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("string")
      */
     private $email;
 
@@ -55,6 +61,7 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
+     * @Serializer\Type("string")
      */
     private $address;
 

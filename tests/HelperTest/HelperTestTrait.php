@@ -3,6 +3,7 @@
 namespace App\Tests\HelperTest;
 
 
+use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
 use JMS\Serializer\Serializer;
@@ -12,6 +13,7 @@ trait HelperTestTrait
 {
     protected $client;
     protected $testProduct;
+    protected $testCustomer;
     protected $testUser;
     protected $testAdmin;
     /**
@@ -34,6 +36,9 @@ trait HelperTestTrait
         if (!$this->testProduct) {
             $this->testProduct = $this->createTestProduct();
         }
+        if (!$this->testCustomer) {
+            $this->testCustomer = $this->createTestCustomer();
+        }
         if (!$this->testUser) {
             $this->testUser = $this->createTestUser();
         }
@@ -53,6 +58,10 @@ trait HelperTestTrait
         if ($this->testProduct) {
             $this->deleteEntity($this->testProduct);
             $this->testProduct = null;
+        }
+        if ($this->testCustomer) {
+            $this->deleteEntity($this->testCustomer);
+            $this->testCustomer = null;
         }
         if ($this->testUser) {
             $this->deleteEntity($this->testUser);
@@ -78,6 +87,22 @@ trait HelperTestTrait
         $product->setQuantity(1351);
 
         return $this->saveEntity($product);
+    }
+
+    /**
+     * Create a test customer
+     *
+     * @return mixed
+     */
+    protected function createTestCustomer()
+    {
+        $customer = new Customer();
+        $customer->setName("test-customer-name");
+        $customer->setEmail("customer@test.com");
+        $customer->setAddress("test customer address");
+        $customer->setSurname("test-customer-surname");
+
+        return $this->saveEntity($customer);
     }
 
     /**
