@@ -153,7 +153,7 @@ class ProductController extends AbstractFOSRestController
      *     }
      * )
      */
-    public function createAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
+    public function createProductAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
         $this->handleViolations($violations);
 
@@ -182,7 +182,7 @@ class ProductController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
      */
-    public function editAction(Product $product, Product $modifiedProduct, EntityManagerInterface $manager)
+    public function editProductAction(Product $product, Product $modifiedProduct, EntityManagerInterface $manager)
     {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
@@ -209,7 +209,7 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_delete"
      * )
      */
-    public function deleteAction(Product $product, EntityManagerInterface $manager)
+    public function deleteProductAction(Product $product, EntityManagerInterface $manager)
     {
         $manager->remove($product);
         $manager->flush();

@@ -6,8 +6,6 @@ namespace App\Tests\Controller;
 use App\Entity\Product;
 use App\Response\DeleteProductResponse;
 use App\Tests\HelperTest\HelperTestTrait;
-use JMS\Serializer\Serializer;
-use JMS\Serializer\SerializerBuilder;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,32 +13,14 @@ class ProductControllerTest extends WebTestCase
 {
     use HelperTestTrait;
 
-    private $client;
-    private $testProduct;
-    /**
-     * @var Serializer
-     */
-    private $serializer;
-
     public function setUp()
     {
-        if (!$this->client) {
-            $this->client = static::createClient();
-        }
-        if (!$this->testProduct) {
-            $this->testProduct = $this->createTestProduct();
-        }
-        if (!$this->serializer) {
-            $this->serializer = SerializerBuilder::create()->build();
-        }
+        $this->fullSetUp();
     }
 
     public function tearDown()
     {
-        if ($this->testProduct) {
-            $this->deleteEntity($this->testProduct);
-            $this->testProduct = null;
-        }
+        $this->fullTearDown();
     }
 
     public function testGetProductAction()
@@ -51,17 +31,46 @@ class ProductControllerTest extends WebTestCase
             [],
             [],
             [
-                $this->keyHeaderToken => $this->testToken
+                $this->keyHeaderToken => $this->testUserToken
             ]
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
         $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json');
-        $this->checkProduct($product);
+        $this->checkEntity($product, $this->testProduct);
     }
 
-    public function testDeleteAction()
+    public function testEditProductAction()
+    {
+        $modifiedProduct = new Product();
+        $modifiedProduct->setModel("test-modified-model");
+        $modifiedProduct->setBrand("test-modified-brand");
+        $modifiedProduct->setQuantity(9999);
+        $modifiedProduct->setPrice(9999);
+        $body = $this->serializer->serialize($modifiedProduct, "json");
+
+        $this->client->request(
+            'POST',
+            "/api/admin/products/{$this->testProduct->getId()}",
+            [],
+            [],
+            [
+                "CONTENT_TYPE" => "application/json",
+                $this->keyHeaderToken => $this->testAdminToken
+            ],
+            $body
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $responseProduct = $this->serializer->deserialize($response->getContent(), Product::class, "json");
+        $this->assertEquals($modifiedProduct->getModel(), $responseProduct->getModel());
+        $this->assertEquals($modifiedProduct->getBrand(), $responseProduct->getBrand());
+        $this->assertEquals($modifiedProduct->getQuantity(), $responseProduct->getQuantity());
+        $this->assertEquals($modifiedProduct->getPrice(), $responseProduct->getPrice());
+    }
+
+    public function testDeleteProductAction()
     {
         $this->client->request(
             'DELETE',
@@ -69,45 +78,12 @@ class ProductControllerTest extends WebTestCase
             [],
             [],
             [
-                $this->keyHeaderToken => $this->testToken
+                $this->keyHeaderToken => $this->testAdminToken
             ]
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $responseContentObject = $this->serializer->deserialize($response->getContent(), DeleteProductResponse::class, "json");
-        $this->checkProduct($responseContentObject->entity);
-    }
-
-    // Private
-
-    /**
-     * Check if an object is a Product and can check if its values are the same than the test object's values
-     *
-     * @param $product
-     * @param bool $checkValues
-     */
-    private function checkProduct($product, bool $checkValues = true)
-    {
-        $this->assertInstanceOf(Product::class, $product);
-        if ($checkValues) {
-            $this->assertEquals(true, $product == $this->testProduct);
-        }
-    }
-
-    /**
-     * Create a test product
-     *
-     * @return mixed
-     */
-    private function createTestProduct()
-    {
-        $product = new Product();
-
-        $product->setModel("Test-Model");
-        $product->setBrand("Test-Brand");
-        $product->setPrice(100);
-        $product->setQuantity(1351);
-
-        return $this->saveEntity($product);
+        $this->checkEntity($responseContentObject->entity, $this->testProduct);
     }
 }

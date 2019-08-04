@@ -26,7 +26,7 @@ class CustomerController extends AbstractFOSRestController
 
     /**
      * @Get(
-     *     path = "/customers/{id}",
+     *     path = "/api/customers/{id}",
      *     name = "customer_show",
      *     requirements = {"id": "\d+"}
      * )
@@ -40,7 +40,7 @@ class CustomerController extends AbstractFOSRestController
 
     /**
      * @Get(
-     *     path = "/customers",
+     *     path = "/api/customers",
      *     name = "customer_list"
      * )
      * @Rest\QueryParam(
@@ -83,7 +83,7 @@ class CustomerController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/customers",
+     *     "/api/customers",
      *     name = "customer_create"
      * )
      * @ParamConverter(
@@ -94,7 +94,7 @@ class CustomerController extends AbstractFOSRestController
      *     }
      * )
      */
-    public function createAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
+    public function createCustomerAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
         $this->handleViolations($violations);
 
@@ -118,13 +118,13 @@ class CustomerController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/customers/{id}",
+     *     "/api/customers/{id}",
      *     name = "customer_edit",
      *     requirements = {"id": "\d+"}
      * )
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
      */
-    public function editAction(Customer $customer, Customer $modifiedCustomer, EntityManagerInterface $manager)
+    public function editCustomerAction(Customer $customer, Customer $modifiedCustomer, EntityManagerInterface $manager)
     {
         if ($modifiedCustomer->getName() !== null) {
             $customer->setName($modifiedCustomer->getName());
@@ -147,11 +147,11 @@ class CustomerController extends AbstractFOSRestController
 
     /**
      * @Delete(
-     *     "/customers/{id}",
+     *     "/api/customers/{id}",
      *     name = "customer_delete"
      * )
      */
-    public function deleteAction(Customer $customer, EntityManagerInterface $manager)
+    public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
     {
         $manager->remove($customer);
         $manager->flush();

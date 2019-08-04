@@ -98,7 +98,7 @@ class UserController extends AbstractFOSRestController
      *     }
      * )
      */
-    public function createAction(
+    public function createUserAction(
         User $newUser,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
@@ -132,7 +132,7 @@ class UserController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
      */
-    public function editAction(User $user, User $modifiedUser, EntityManagerInterface $manager)
+    public function editUserAction(User $user, User $modifiedUser, EntityManagerInterface $manager)
     {
         if ($modifiedUser->getName() !== null) {
             $user->setName($modifiedUser->getName());
@@ -162,7 +162,7 @@ class UserController extends AbstractFOSRestController
      *     name = "user_delete"
      * )
      */
-    public function deleteAction(User $user, EntityManagerInterface $manager)
+    public function deleteUserAction(User $user, EntityManagerInterface $manager)
     {
         $manager->remove($user);
         $manager->flush();
