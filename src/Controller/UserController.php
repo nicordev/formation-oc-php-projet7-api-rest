@@ -26,12 +26,12 @@ class UserController extends AbstractFOSRestController
 
     /**
      * @Get(
-     *     path = "/users/{id}",
+     *     path = "/api/users/{id}",
      *     name = "user_show_id",
      *     requirements = {"id": "\d+"}
      * )
      * @Get(
-     *     path = "/users/{name}",
+     *     path = "/api/users/{name}",
      *     name = "user_show_name"
      * )
      */
@@ -44,7 +44,7 @@ class UserController extends AbstractFOSRestController
 
     /**
      * @Get(
-     *     path = "/users",
+     *     path = "/api/users",
      *     name = "user_list"
      * )
      * @Rest\QueryParam(
@@ -87,7 +87,7 @@ class UserController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/users",
+     *     "/api/users",
      *     name = "user_create"
      * )
      * @ParamConverter(

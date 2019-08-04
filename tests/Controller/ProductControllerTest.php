@@ -1,12 +1,11 @@
 <?php
 
-namespace App\tests\Controller;
+namespace App\Tests\Controller;
 
-require dirname(__DIR__) . "/HelperTest/HelperTestTrait.php";
 
 use App\Entity\Product;
 use App\Response\DeleteProductResponse;
-use App\tests\HelperTest\HelperTestTrait;
+use App\Tests\HelperTest\HelperTestTrait;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -66,7 +65,7 @@ class ProductControllerTest extends WebTestCase
     {
         $this->client->request(
             'DELETE',
-            "/api/products/{$this->testProduct->getId()}",
+            "/api/admin/products/{$this->testProduct->getId()}",
             [],
             [],
             [

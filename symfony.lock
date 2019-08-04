@@ -1,7 +1,4 @@
 {
-    "beberlei/assert": {
-        "version": "v3.2.1"
-    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -96,9 +93,6 @@
     "doctrine/reflection": {
         "version": "v1.0.0"
     },
-    "fgrosse/phpasn1": {
-        "version": "v2.1.1"
-    },
     "friendsofsymfony/rest-bundle": {
         "version": "2.2",
         "recipe": {
@@ -188,9 +182,6 @@
     "psr/container": {
         "version": "1.0.0"
     },
-    "psr/event-dispatcher": {
-        "version": "1.0.0"
-    },
     "psr/log": {
         "version": "1.1.0"
     },
@@ -205,9 +196,6 @@
         "files": [
             "./config/packages/sensio_framework_extra.yaml"
         ]
-    },
-    "spomky-labs/base64url": {
-        "version": "v2.0.1"
     },
     "symfony/apache-pack": {
         "version": "1.0",
@@ -434,12 +422,6 @@
     },
     "symfony/yaml": {
         "version": "v4.3.2"
-    },
-    "web-token/jwt-bundle": {
-        "version": "v2.0.9"
-    },
-    "web-token/jwt-core": {
-        "version": "v2.0.9"
     },
     "willdurand/hateoas": {
         "version": "3.1.0"
