@@ -23,6 +23,8 @@ class AppFixtures extends Fixture
      */
     private $parameterBag;
 
+    private const HASHED_PASSWORD = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
+
     public function __construct(ParameterBagInterface $parameterBag)
     {
         $this->parameterBag = $parameterBag;
@@ -53,7 +55,7 @@ class AppFixtures extends Fixture
         for ($i = 0, $size = count($userNames); $i < $size; $i++) {
             $user = new User();
             $user->setEmail($this->generateEmail($userNames[$i]))
-                ->setPassword("mdp")
+                ->setPassword(self::HASHED_PASSWORD)
                 ->setName($userNames[$i])
                 ->setRoles(["ROLE_USER"])
                 ->setApiToken("test_token_{$i}");
@@ -63,7 +65,7 @@ class AppFixtures extends Fixture
         // Test admin
         $testUser = new User();
         $testUser->setEmail($this->generateEmail("Test Admin"))
-            ->setPassword("mdp")
+            ->setPassword(self::HASHED_PASSWORD)
             ->setName("Test Admin")
             ->setRoles(["ROLE_ADMIN"])
             ->setApiToken("test_token");
@@ -152,5 +154,26 @@ class AppFixtures extends Fixture
     private function getRootDirectory()
     {
         return $this->parameterBag->get('kernel.project_dir');
+    }
+
+    /**
+     * Generate an email from a name
+     *
+     * @param string $name
+     * @return string
+     */
+    private function generateEmail(string $name)
+    {
+        $nameParts = explode(" ", $name);
+        $domains = [
+            "gmail.com",
+            "yahoo.com",
+            "hotmail.com",
+            "orange.com"
+        ];
+        $domain = $domains[mt_rand(0, count($domains) - 1)];
+        $emailFirstPart = strtolower(implode(".", $nameParts));
+
+        return  "$emailFirstPart@$domain";
     }
 }
