@@ -20,15 +20,26 @@ security:
             guard:
                 authenticators:
                     - App\Security\TokenAuthenticator
-        api_area:
+        api:
             pattern:  ^/api/
             stateless:  true
-            http_basic:
-                realm: "RESTful API"
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+
+        login:
+            pattern:  ^/api/login
+            stateless: true
+            anonymous: true
+            json_login:
+                check_path:               /api/login_check
+                success_handler:          lexik_jwt_authentication.handler.authentication_success
+                failure_handler:          lexik_jwt_authentication.handler.authentication_failure
 
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
-        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
