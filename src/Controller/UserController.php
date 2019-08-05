@@ -18,6 +18,7 @@ use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class UserController extends AbstractFOSRestController
@@ -54,7 +55,7 @@ class UserController extends AbstractFOSRestController
      *     description = "Page number"
      * )
      * @Rest\QueryParam(
-     *     name = "itemsPerPage",
+     *     name = "quantity",
      *     requirements = "\d+",
      *     default = 5,
      *     description = "Number of items per page"
@@ -63,9 +64,9 @@ class UserController extends AbstractFOSRestController
     public function getUsersAction(
         UserRepository $repository,
         int $page = 1,
-        int $itemsPerPage = 5
+        int $quantity = 5
     ) {
-        $paginatedUsers = $repository->getPage($page, $itemsPerPage);
+        $paginatedUsers = $repository->getPage($page, $quantity);
         $users = $paginatedUsers[UserRepository::KEY_PAGING_ENTITIES];
 
         $paginatedRepresentation = new PaginatedRepresentation(
@@ -73,10 +74,10 @@ class UserController extends AbstractFOSRestController
             "product_list",
             [
                 "page" => $page,
-                "itemsPerPage" => $itemsPerPage
+                "quantity" => $quantity
             ],
             $page,
-            $itemsPerPage,
+            $quantity,
             $paginatedUsers[UserRepository::KEY_PAGING_COUNT]
         );
 
@@ -102,13 +103,13 @@ class UserController extends AbstractFOSRestController
         User $newUser,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
-        TokenHandler $tokenHandler
-    )
-    {
+        TokenHandler $tokenHandler,
+        UserPasswordEncoderInterface $encoder
+    ) {
         $this->handleViolations($violations);
 
-        $newUser->setApiToken($tokenHandler->generateToken());
-        $newUser->setPassword("No password from createAction");
+        $encoded = $encoder->encodePassword($newUser, $newUser->getPassword());
+        $newUser->setPassword($encoded);
         $manager->persist($newUser);
         $manager->flush();
         $view = $this->view(
@@ -132,8 +133,12 @@ class UserController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
      */
-    public function editUserAction(User $user, User $modifiedUser, EntityManagerInterface $manager)
-    {
+    public function editUserAction(
+        User $user,
+        User $modifiedUser,
+        EntityManagerInterface $manager,
+        UserPasswordEncoderInterface $encoder
+    ) {
         if ($modifiedUser->getName() !== null) {
             $user->setName($modifiedUser->getName());
         }
@@ -141,10 +146,8 @@ class UserController extends AbstractFOSRestController
             $user->setEmail($modifiedUser->getEmail());
         }
         if (!empty($modifiedUser->getPassword())) {
-            $user->setPassword($modifiedUser->getPassword());
-        }
-        if (!empty($modifiedUser->getApiToken() !== null)) {
-            $user->setApiToken($modifiedUser->getApiToken());
+            $encoded = $encoder->encodePassword($modifiedUser, $modifiedUser->getPassword());
+            $modifiedUser->setPassword($encoded);
         }
         if (!empty($modifiedUser->getRoles() !== null)) {
             $user->setRoles($modifiedUser->getRoles());

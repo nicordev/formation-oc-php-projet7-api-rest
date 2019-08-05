@@ -39,15 +39,12 @@ class User implements UserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Assert\NotBlank(
+     *     groups = {"Create"}
+     * )
      * @Serializer\Type("string")
      */
     private $password;
-
-    /**
-     * @ORM\Column(type="string", unique=true, length=500)
-     * @Serializer\Type("string")
-     */
-    private $apiToken;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -134,18 +131,6 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
-    }
-
-    public function getApiToken(): ?string
-    {
-        return $this->apiToken;
-    }
-
-    public function setApiToken(string $apiToken): self
-    {
-        $this->apiToken = $apiToken;
-
-        return $this;
     }
 
     public function getName(): ?string

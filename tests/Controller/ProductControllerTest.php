@@ -8,6 +8,7 @@ use App\Response\DeleteProductResponse;
 use App\Tests\HelperTest\HelperTestTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ProductControllerTest extends WebTestCase
 {
@@ -25,16 +26,25 @@ class ProductControllerTest extends WebTestCase
 
     public function testGetProductAction()
     {
+        // Anonymous
+        $this->client->request(
+            'GET',
+            "/api/products/{$this->testProduct->getId()}"
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+
+        // As user
+        $token = $this->login($this->userEmail, $this->password);
         $this->client->request(
             'GET',
             "/api/products/{$this->testProduct->getId()}",
             [],
             [],
             [
-                $this->keyHeaderToken => $this->testUserToken
+                "Authorization" => "BEARER $token"
             ]
         );
-        $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
         $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json');

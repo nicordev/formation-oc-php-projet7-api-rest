@@ -22,6 +22,12 @@ class AppFixtures extends Fixture
      * @var ParameterBagInterface
      */
     private $parameterBag;
+    private $domains = [
+        "gmail.com",
+        "yahoo.com",
+        "hotmail.com",
+        "orange.com"
+    ];
 
     private const HASHED_PASSWORD = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
 
@@ -57,19 +63,27 @@ class AppFixtures extends Fixture
             $user->setEmail($this->generateEmail($userNames[$i]))
                 ->setPassword(self::HASHED_PASSWORD)
                 ->setName($userNames[$i])
-                ->setRoles(["ROLE_USER"])
-                ->setApiToken("test_token_{$i}");
+                ->setRoles(["ROLE_USER"]);
             $this->manager->persist($user);
         }
 
-        // Test admin
+        // Easy to get user
         $testUser = new User();
-        $testUser->setEmail($this->generateEmail("Test Admin"))
+        $testUser->setEmail("user@easy.com")
             ->setPassword(self::HASHED_PASSWORD)
-            ->setName("Test Admin")
-            ->setRoles(["ROLE_ADMIN"])
-            ->setApiToken("test_token");
+            ->setName("Easy User")
+            ->setRoles(["ROLE_USER"]);
         $this->manager->persist($testUser);
+
+        $this->manager->flush();
+
+        // Test admin
+        $testAdmin = new User();
+        $testAdmin->setEmail("admin@easy.com")
+            ->setPassword(self::HASHED_PASSWORD)
+            ->setName("Easy Admin")
+            ->setRoles(["ROLE_ADMIN"]);
+        $this->manager->persist($testAdmin);
 
         $this->manager->flush();
     }
@@ -165,13 +179,7 @@ class AppFixtures extends Fixture
     private function generateEmail(string $name)
     {
         $nameParts = explode(" ", $name);
-        $domains = [
-            "gmail.com",
-            "yahoo.com",
-            "hotmail.com",
-            "orange.com"
-        ];
-        $domain = $domains[mt_rand(0, count($domains) - 1)];
+        $domain = $this->domains[mt_rand(0, count($this->domains) - 1)];
         $emailFirstPart = strtolower(implode(".", $nameParts));
 
         return  "$emailFirstPart@$domain";

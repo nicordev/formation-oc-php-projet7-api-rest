@@ -44,11 +44,10 @@ class UserControllerTest extends WebTestCase
     public function testEditUserAction()
     {
         $modifiedUser = new User();
-        $modifiedUser->setName("test-modified-name");
-        $modifiedUser->setEmail("modified.user@test.com");
-        $modifiedUser->setPassword("modified.password");
-        $modifiedUser->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
-        $modifiedUser->setApiToken("test_modified_token");
+        $modifiedUser->setName("test-modified-name")
+            ->setEmail("modified.user@test.com")
+            ->setPassword("modified.password")
+            ->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
         $body = $this->serializer->serialize($modifiedUser, "json");
 
         $this->client->request(

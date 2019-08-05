@@ -6,8 +6,11 @@ namespace App\Tests\HelperTest;
 use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
+use App\Helper\LoginCredentials;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 trait HelperTestTrait
 {
@@ -20,10 +23,14 @@ trait HelperTestTrait
      * @var Serializer
      */
     protected $serializer;
-
-    protected $keyHeaderToken = "HTTP_X-AUTH-TOKEN";
-    protected $testUserToken = "test_user_token";
-    protected $testAdminToken = "test_admin_token";
+    protected $userEmail = "user@test.com";
+    protected $adminEmail = "admin@test.com";
+    protected $password = "pwdSucks!0";
+    protected $hashedPassword = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
+    protected $productModel = "Test-Model";
+    protected $productBrand = "Test-Brand";
+    protected $customerName = "test-customer-name";
+    protected $customerEmail = "customer@test.com";
 
     /**
      * Generate a test product, a test user and a test admin
@@ -56,7 +63,7 @@ trait HelperTestTrait
     public function fullTearDown()
     {
         if ($this->testProduct) {
-            $this->deleteEntity($this->testProduct);
+            $this->deleteEntity($this->testProduct); // doctrine detached entity cannot be removed
             $this->testProduct = null;
         }
         if ($this->testCustomer) {
@@ -72,6 +79,42 @@ trait HelperTestTrait
             $this->testAdmin = null;
         }
     }
+
+    /**
+     * Send a login request and get the token
+     *
+     * @param string $login
+     * @param string $password
+     * @return
+     */
+    protected function login(string $login, string $password)
+    {
+        $body = new class ($login, $password) {
+            public $username;
+            public $password;
+
+            public function __construct(string $username, string $password)
+            {
+                $this->username = $username;
+                $this->password = $password;
+            }
+        };
+        $this->client->request(
+            'POST',
+            "/api/login_check",
+            [],
+            [],
+            [
+                "CONTENT_TYPE" => "application/json"
+            ],
+            $this->serializer->serialize($body, 'json')
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $responseObject = json_decode($this->client->getResponse()->getContent());
+
+        return $responseObject->token;
+    }
     
     /**
      * Create a test product
@@ -81,8 +124,8 @@ trait HelperTestTrait
     protected function createTestProduct()
     {
         $product = new Product();
-        $product->setModel("Test-Model");
-        $product->setBrand("Test-Brand");
+        $product->setModel($this->productModel);
+        $product->setBrand($this->productBrand);
         $product->setPrice(100);
         $product->setQuantity(1351);
 
@@ -97,8 +140,8 @@ trait HelperTestTrait
     protected function createTestCustomer()
     {
         $customer = new Customer();
-        $customer->setName("test-customer-name");
-        $customer->setEmail("customer@test.com");
+        $customer->setName($this->customerName);
+        $customer->setEmail($this->customerEmail);
         $customer->setAddress("test customer address");
         $customer->setSurname("test-customer-surname");
 
@@ -114,11 +157,10 @@ trait HelperTestTrait
     {
         $user = new User();
 
-        $user->setName("test-user-name");
-        $user->setEmail("user@test.com");
-        $user->setPassword("test-user-password");
-        $user->setApiToken($this->testUserToken);
-        $user->setRoles(["ROLE_USER"]);
+        $user->setName("test-user-name")
+            ->setEmail($this->userEmail)
+            ->setRoles(["ROLE_USER"])
+            ->setPassword($this->hashedPassword);
 
         return $this->saveEntity($user);
     }
@@ -132,11 +174,10 @@ trait HelperTestTrait
     {
         $user = new User();
 
-        $user->setName("test-admin-name");
-        $user->setEmail("admin@test.com");
-        $user->setPassword("test-admin-password");
-        $user->setApiToken($this->testAdminToken);
-        $user->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
+        $user->setName("test-admin-name")
+            ->setEmail($this->adminEmail)
+            ->setRoles(["ROLE_USER", "ROLE_ADMIN"])
+            ->setPassword($this->hashedPassword);
 
         return $this->saveEntity($user);
     }
