@@ -20,6 +20,11 @@ security:
             guard:
                 authenticators:
                     - App\Security\TokenAuthenticator
+        api_area:
+            pattern:  ^/api/
+            stateless:  true
+            http_basic:
+                realm: "RESTful API"
 
 
     # Easy way to control access for large sections of your site
