@@ -103,7 +103,6 @@ class UserController extends AbstractFOSRestController
         User $newUser,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
-        TokenHandler $tokenHandler,
         UserPasswordEncoderInterface $encoder
     ) {
         $this->handleViolations($violations);

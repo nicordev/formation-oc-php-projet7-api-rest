@@ -25,13 +25,23 @@ class CustomerControllerTest extends WebTestCase
 
     public function testGetCustomerAction()
     {
+        // Anonymous
+        $this->client->request(
+            'GET',
+            "/api/customers/{$this->testCustomer->getId()}"
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+
+        // As user
+        $token = $this->login($this->userEmail, $this->password);
         $this->client->request(
             'GET',
             "/api/customers/{$this->testCustomer->getId()}",
             [],
             [],
             [
-                $this->keyHeaderToken => $this->testUserToken
+                "Authorization" => "BEARER $token"
             ]
         );
         $response = $this->client->getResponse();
@@ -56,8 +66,7 @@ class CustomerControllerTest extends WebTestCase
             [],
             [],
             [
-                "CONTENT_TYPE" => "application/json",
-                $this->keyHeaderToken => $this->testUserToken
+                "CONTENT_TYPE" => "application/json"
             ],
             $body
         );

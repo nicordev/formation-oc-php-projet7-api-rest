@@ -6,6 +6,7 @@ namespace App\Tests\HelperTest;
 use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
+use App\Helper\DatabaseHandler;
 use App\Helper\LoginCredentials;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
@@ -232,12 +233,21 @@ trait HelperTestTrait
      *
      * @param $entity
      * @return mixed
+     * @throws \Exception
      */
     protected function deleteEntity($entity)
     {
         $manager = $this->client->getContainer()->get('doctrine')->getManager();
-        $manager->remove($entity);
-        $manager->flush();
+
+        try {
+            $manager->remove($entity);
+            $manager->flush();
+        } catch (\Exception $e) {
+            echo "\nException: " . $e->getCode() . " " . $e->getMessage() . "\n";
+            $database = DatabaseHandler::getInstance("mysql", "ocp7_bilemo_api", "root", "");
+            $table = $database->getTableNameFromEntity($entity);
+            $database->delete($table, "id = {$entity->getId()}");
+        }
 
         return $entity;
     }
