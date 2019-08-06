@@ -51,6 +51,48 @@ class CustomerControllerTest extends WebTestCase
         $this->checkEntity($customer, $this->testCustomer, true);
     }
 
+    public function testCreateCustomerAction()
+    {
+        $newCustomer = new Customer();
+        $newCustomer->setName("new-customer-test-name")
+            ->setSurname("new-customer-test-surname")
+            ->setEmail("new.customer@test.com")
+            ->setAddress("new-customer-test-address");
+        $body = $this->serializer->serialize($newCustomer, "json");
+
+        // Anonymous
+        $this->client->request(
+            'POST',
+            "/api/customers",
+            [],
+            [],
+            [
+                "CONTENT_TYPE" => "application/json"
+            ],
+            $body
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+
+        // As user
+        $token = $this->login($this->userEmail, $this->password);
+        $this->client->request(
+            'POST',
+            "/api/customers",
+            [],
+            [],
+            [
+                "CONTENT_TYPE" => "application/json",
+                "Authorization" => "BEARER $token"
+            ],
+            $body
+        );
+        $response = $this->client->getResponse();
+        $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
+        $responseCustomer = $this->serializer->deserialize($response->getContent(), Customer::class, "json");
+        $this->checkEntity($responseCustomer, $newCustomer);
+    }
+
     public function testEditCustomerAction()
     {
         $modifiedCustomer = new Customer();
@@ -83,12 +125,7 @@ class CustomerControllerTest extends WebTestCase
     {
         $this->client->request(
             'DELETE',
-            "/api/customers/{$this->testCustomer->getId()}",
-            [],
-            [],
-            [
-                $this->keyHeaderToken => $this->testUserToken
-            ]
+            "/api/customers/{$this->testCustomer->getId()}"
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());

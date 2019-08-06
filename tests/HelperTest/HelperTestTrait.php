@@ -7,7 +7,7 @@ use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Helper\DatabaseHandler;
-use App\Helper\LoginCredentials;
+use App\Helper\DetachedStateSaviorTrait;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +15,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 trait HelperTestTrait
 {
+    use DetachedStateSaviorTrait;
+
     protected $client;
     protected $testProduct;
     protected $testCustomer;
@@ -243,10 +245,17 @@ trait HelperTestTrait
             $manager->remove($entity);
             $manager->flush();
         } catch (\Exception $e) {
-            echo "\nException: " . $e->getCode() . " " . $e->getMessage() . "\n";
-            $database = DatabaseHandler::getInstance("mysql", "ocp7_bilemo_api", "root", "");
-            $table = $database->getTableNameFromEntity($entity);
-            $database->delete($table, "id = {$entity->getId()}");
+            $entityRecovered = $this->createEntityFromDetachedEntity($entity);
+
+            try {
+                $manager->remove($entityRecovered);
+                $manager->flush();
+            } catch (\Exception $e) {
+                echo "\nException: " . $e->getCode() . " " . $e->getMessage() . "\n";
+                $database = DatabaseHandler::getInstance("mysql", "ocp7_bilemo_api", "root", "");
+                $table = $database->getTableNameFromEntity($entity);
+                $database->delete($table, "id = {$entity->getId()}");
+            }
         }
 
         return $entity;

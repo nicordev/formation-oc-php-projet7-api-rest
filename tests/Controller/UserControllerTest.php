@@ -27,12 +27,7 @@ class UserControllerTest extends WebTestCase
     {
         $this->client->request(
             'GET',
-            "/api/users/{$this->testUser->getId()}",
-            [],
-            [],
-            [
-                $this->keyHeaderToken => $this->testUserToken
-            ]
+            "/api/users/{$this->testUser->getId()}"
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -56,8 +51,7 @@ class UserControllerTest extends WebTestCase
             [],
             [],
             [
-                "CONTENT_TYPE" => "application/json",
-                $this->keyHeaderToken => $this->testUserToken
+                "CONTENT_TYPE" => "application/json"
             ],
             $body
         );
@@ -75,12 +69,7 @@ class UserControllerTest extends WebTestCase
     {
         $this->client->request(
             'DELETE',
-            "/api/users/{$this->testUser->getId()}",
-            [],
-            [],
-            [
-                $this->keyHeaderToken => $this->testAdminToken
-            ]
+            "/api/users/{$this->testUser->getId()}"
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
