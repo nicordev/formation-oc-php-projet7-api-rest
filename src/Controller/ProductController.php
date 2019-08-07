@@ -142,7 +142,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/api/admin/products",
+     *     "/api/products",
      *     name = "product_create"
      * )
      * @ParamConverter(
@@ -176,7 +176,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Post(
-     *     "/api/admin/products/{id}",
+     *     "/api/products/{id}",
      *     name = "product_edit",
      *     requirements = {"id": "\d+"}
      * )
@@ -205,7 +205,7 @@ class ProductController extends AbstractFOSRestController
 
     /**
      * @Delete(
-     *     "/api/admin/products/{id}",
+     *     "/api/products/{id}",
      *     name = "product_delete"
      * )
      */

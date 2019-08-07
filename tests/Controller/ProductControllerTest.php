@@ -62,12 +62,11 @@ class ProductControllerTest extends WebTestCase
 
         $this->client->request(
             'POST',
-            "/api/admin/products/{$this->testProduct->getId()}",
+            "/api/products/{$this->testProduct->getId()}",
             [],
             [],
             [
-                "CONTENT_TYPE" => "application/json",
-                $this->keyHeaderToken => $this->testAdminToken
+                "CONTENT_TYPE" => "application/json"
             ],
             $body
         );
@@ -84,12 +83,7 @@ class ProductControllerTest extends WebTestCase
     {
         $this->client->request(
             'DELETE',
-            "/api/admin/products/{$this->testProduct->getId()}",
-            [],
-            [],
-            [
-                $this->keyHeaderToken => $this->testAdminToken
-            ]
+            "/api/products/{$this->testProduct->getId()}"
         );
         $response = $this->client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
