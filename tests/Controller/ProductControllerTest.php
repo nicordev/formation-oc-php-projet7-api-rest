@@ -3,52 +3,42 @@
 namespace App\Tests\Controller;
 
 
+use App\Controller\ProductController;
 use App\Entity\Product;
-use App\Response\DeleteProductResponse;
-use App\Tests\HelperTest\HelperTestTrait;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use FOS\RestBundle\View\ViewHandler;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializerBuilder;
+use Metadata\MetadataFactory;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Templating\PhpEngine;
+use Symfony\Component\Templating\TemplateNameParser;
+use Symfony\Component\Templating\Tests\ProjectTemplateEngine;
 
-class ProductControllerTest extends WebTestCase
+class ProductControllerTest extends TestCase
 {
-    use HelperTestTrait;
-
-    public function setUp()
-    {
-        $this->fullSetUp();
-    }
-
-    public function tearDown()
-    {
-        $this->fullTearDown();
-    }
-
     public function testGetProductAction()
     {
-        // Anonymous
-        $this->client->request(
-            'GET',
-            "/api/products/{$this->testProduct->getId()}"
-        );
-        $response = $this->client->getResponse();
-        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+        $product = $this->createMock(Product::class);
+        $product->method("getId")
+            ->willReturn(1);
+        $product->method("getModel")
+            ->willReturn("test-model");
+        $product->method("getBrand")
+            ->willReturn("test-brand");
+        $product->method("getPrice")
+            ->willReturn(9999);
+        $product->method("getQuantity")
+            ->willReturn(8888);
+        $viewHandler = $this->createMock(ViewHandler::class);
+        $controller = new ProductController();
+        $controller->setViewHandler($viewHandler);
+        $response = $controller->getProductAction($product);
 
-        // As user
-        $token = $this->login($this->userEmail, $this->password);
-        $this->client->request(
-            'GET',
-            "/api/products/{$this->testProduct->getId()}",
-            [],
-            [],
-            [
-                "Authorization" => "BEARER $token"
-            ]
-        );
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-
-        $product = $this->serializer->deserialize($response->getContent(), Product::class, 'json');
-        $this->checkEntity($product, $this->testProduct);
+        $this->assertObjectHasAttribute("test", $response);
     }
 
     public function testEditProductAction()
