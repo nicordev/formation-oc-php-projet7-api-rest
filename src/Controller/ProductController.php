@@ -35,12 +35,11 @@ class ProductController extends AbstractFOSRestController
      *     path = "/api/products/{model}",
      *     name = "product_show_model"
      * )
+     * @View()
      */
     public function getProductAction(Product $product)
     {
-        $view = $this->view($product, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($product, Response::HTTP_OK);
     }
 
     /**
