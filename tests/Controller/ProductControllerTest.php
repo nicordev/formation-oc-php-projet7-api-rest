@@ -11,6 +11,7 @@ use JMS\Serializer\SerializerBuilder;
 use Metadata\MetadataFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
@@ -22,23 +23,36 @@ class ProductControllerTest extends TestCase
 {
     public function testGetProductAction()
     {
+        $id = 7777;
+        $model = "test-model";
+        $brand = "test-brand";
+        $price = 9999;
+        $quantity = 8888;
+
         $product = $this->createMock(Product::class);
         $product->method("getId")
-            ->willReturn(1);
+            ->willReturn($id);
         $product->method("getModel")
-            ->willReturn("test-model");
+            ->willReturn($model);
         $product->method("getBrand")
-            ->willReturn("test-brand");
+            ->willReturn($brand);
         $product->method("getPrice")
-            ->willReturn(9999);
+            ->willReturn($price);
         $product->method("getQuantity")
-            ->willReturn(8888);
+            ->willReturn($quantity);
         $viewHandler = $this->createMock(ViewHandler::class);
         $controller = new ProductController();
         $controller->setViewHandler($viewHandler);
         $response = $controller->getProductAction($product);
 
-        $this->assertObjectHasAttribute("test", $response);
+        $this->assertObjectHasAttribute("statusCode", $response);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $responseProduct = $response->getData();
+        $this->assertEquals($id, $responseProduct->getId());
+        $this->assertEquals($model, $responseProduct->getModel());
+        $this->assertEquals($brand, $responseProduct->getBrand());
+        $this->assertEquals($price, $responseProduct->getPrice());
+        $this->assertEquals($quantity, $responseProduct->getQuantity());
     }
 
     public function testEditProductAction()
