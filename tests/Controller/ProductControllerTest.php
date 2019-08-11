@@ -19,6 +19,7 @@ use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Templating\PhpEngine;
 use Symfony\Component\Templating\TemplateNameParser;
 use Symfony\Component\Templating\Tests\ProjectTemplateEngine;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ProductControllerTest extends TestCase
 {
@@ -30,6 +31,27 @@ class ProductControllerTest extends TestCase
         $response = $controller->getProductAction($product);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+
+        $responseProduct = $response->getData();
+        $this->assertEquals($product->getId(), $responseProduct->getId());
+        $this->assertEquals($product->getModel(), $responseProduct->getModel());
+        $this->assertEquals($product->getBrand(), $responseProduct->getBrand());
+        $this->assertEquals($product->getPrice(), $responseProduct->getPrice());
+        $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
+    }
+
+    public function testCreateProductAction()
+    {
+        $product = $this->createMockedProduct();
+        $controller = $this->createProductController();
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->persist($product)->shouldBeCalled();
+        $manager->flush()->shouldBeCalled();
+
+        $response = $controller->createProductAction($product, $manager->reveal(), $violations);
+        $this->assertObjectHasAttribute("statusCode", $response);
+        $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
 
         $responseProduct = $response->getData();
         $this->assertEquals($product->getId(), $responseProduct->getId());

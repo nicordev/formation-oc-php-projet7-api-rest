@@ -153,6 +153,7 @@ class ProductController extends AbstractFOSRestController
      *          "validator" = {"groups" = "Create"}
      *     }
      * )
+     * @View()
      */
     public function createProductAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
@@ -160,19 +161,8 @@ class ProductController extends AbstractFOSRestController
 
         $manager->persist($newProduct);
         $manager->flush();
-        $view = $this->view(
-            $newProduct,
-            Response::HTTP_CREATED,
-            [
-                'Location' => $this->generateUrl(
-                    'product_show_id',
-                    ['id' => $newProduct->getId()],
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                )
-            ]
-        );
 
-        return $this->handleView($view);
+        return $this->view($newProduct, Response::HTTP_CREATED);
     }
 
     /**
