@@ -9,18 +9,8 @@ use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
-use JMS\Serializer\Serializer;
-use JMS\Serializer\SerializerBuilder;
-use Metadata\MetadataFactory;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Generator\UrlGenerator;
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Templating\PhpEngine;
-use Symfony\Component\Templating\TemplateNameParser;
-use Symfony\Component\Templating\Tests\ProjectTemplateEngine;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ProductControllerTest extends TestCase

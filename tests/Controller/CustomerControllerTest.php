@@ -6,8 +6,6 @@ namespace App\Tests\Controller;
 use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Repository\CustomerRepository;
-use App\Response\DeleteCustomerResponse;
-use App\Tests\HelperTest\HelperTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
