@@ -7,10 +7,12 @@ use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Response\DeleteCustomerResponse;
 use App\Tests\HelperTest\HelperTestTrait;
+use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CustomerControllerTest extends TestCase
 {
@@ -24,54 +26,26 @@ class CustomerControllerTest extends TestCase
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
-        $responseProduct = $response->getData();
-        $this->assertEquals($customer->getId(), $responseProduct->getId());
-        $this->assertEquals($customer->getName(), $responseProduct->getName());
-        $this->assertEquals($customer->getSurname(), $responseProduct->getSurname());
-        $this->assertEquals($customer->getEmail(), $responseProduct->getEmail());
-        $this->assertEquals($customer->getAddress(), $responseProduct->getAddress());
+        $responseCustomer = $response->getData();
+        $this->checkCustomer($customer, $responseCustomer);
     }
 
     public function testCreateCustomerAction()
     {
-        $newCustomer = new Customer();
-        $newCustomer->setName("new-customer-test-name")
-            ->setSurname("new-customer-test-surname")
-            ->setEmail("new.customer@test.com")
-            ->setAddress("new-customer-test-address");
-        $body = $this->serializer->serialize($newCustomer, "json");
+        $customer = $this->createMockedCustomer();
+        $controller = $this->createCustomerController();
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->persist($customer)->shouldBeCalled();
+        $manager->flush()->shouldBeCalled();
 
-        // Anonymous
-        $this->client->request(
-            'POST',
-            "/api/customers",
-            [],
-            [],
-            [
-                "CONTENT_TYPE" => "application/json"
-            ],
-            $body
-        );
-        $response = $this->client->getResponse();
-        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
-
-        // As user
-        $token = $this->login($this->userEmail, $this->password);
-        $this->client->request(
-            'POST',
-            "/api/customers",
-            [],
-            [],
-            [
-                "CONTENT_TYPE" => "application/json",
-                "Authorization" => "BEARER $token"
-            ],
-            $body
-        );
-        $response = $this->client->getResponse();
+        $response = $controller->createCustomerAction($customer, $manager->reveal(), $violations);
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
-        $responseCustomer = $this->serializer->deserialize($response->getContent(), Customer::class, "json");
-        $this->checkEntity($responseCustomer, $newCustomer);
+        $this->assertInstanceOf(View::class, $response);
+
+        $responseCustomer = $response->getData();
+        $this->checkCustomer($customer, $responseCustomer);
     }
 
     public function testEditCustomerAction()
@@ -145,5 +119,14 @@ class CustomerControllerTest extends TestCase
             ->willReturn($address);
 
         return $mockedCustomer;
+    }
+
+    private function checkCustomer($expectedCustomer, $responseCustomer)
+    {
+        $this->assertEquals($expectedCustomer->getId(), $responseCustomer->getId());
+        $this->assertEquals($expectedCustomer->getName(), $responseCustomer->getName());
+        $this->assertEquals($expectedCustomer->getSurname(), $responseCustomer->getSurname());
+        $this->assertEquals($expectedCustomer->getEmail(), $responseCustomer->getEmail());
+        $this->assertEquals($expectedCustomer->getAddress(), $responseCustomer->getAddress());
     }
 }

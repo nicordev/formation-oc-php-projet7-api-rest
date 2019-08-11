@@ -17,6 +17,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use FOS\RestBundle\Controller\Annotations\View;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -93,6 +94,7 @@ class CustomerController extends AbstractFOSRestController
      *          "validator" = {"groups" = "Create"}
      *     }
      * )
+     * @View()
      */
     public function createCustomerAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
     {
@@ -101,19 +103,7 @@ class CustomerController extends AbstractFOSRestController
         $manager->persist($newCustomer);
         $manager->flush();
 
-        $view = $this->view(
-            $newCustomer,
-            Response::HTTP_CREATED,
-            ['Location' => $this->generateUrl(
-                'customer_show',
-                [
-                    'id' => $newCustomer->getId(),
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                ]
-            )]
-        );
-
-        return $this->handleView($view);
+        return $this->view($newCustomer, Response::HTTP_CREATED);
     }
 
     /**
