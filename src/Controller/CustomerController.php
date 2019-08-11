@@ -31,12 +31,11 @@ class CustomerController extends AbstractFOSRestController
      *     name = "customer_show",
      *     requirements = {"id": "\d+"}
      * )
+     * @View
      */
     public function getCustomerAction(Customer $customer)
     {
-        $view = $this->view($customer, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($customer, Response::HTTP_OK);
     }
 
     /**
