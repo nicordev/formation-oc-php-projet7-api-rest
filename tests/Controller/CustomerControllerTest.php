@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 
 use App\Controller\CustomerController;
 use App\Entity\Customer;
+use App\Repository\CustomerRepository;
 use App\Response\DeleteCustomerResponse;
 use App\Tests\HelperTest\HelperTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,6 +29,25 @@ class CustomerControllerTest extends TestCase
 
         $responseCustomer = $response->getData();
         $this->checkCustomer($customer, $responseCustomer);
+    }
+
+    public function testGetCustomersAction()
+    {
+        $controller = $this->createCustomerController();
+        $page = 1;
+        $quantity = 5;
+
+        $repository = $this->prophesize(CustomerRepository::class);
+        $repository->getPage($page, $quantity)->shouldBeCalled();
+
+        $response = $controller->getCustomersAction(
+            $repository->reveal(),
+            $page,
+            $quantity
+        );
+        $this->assertObjectHasAttribute("statusCode", $response);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
     }
 
     public function testCreateCustomerAction()

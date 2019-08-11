@@ -56,6 +56,7 @@ class CustomerController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
+     * @View()
      */
     public function getCustomersAction(
         CustomerRepository $repository,
@@ -77,9 +78,7 @@ class CustomerController extends AbstractFOSRestController
             $paginatedCustomers[PaginatedRepository::KEY_PAGING_COUNT]
         );
 
-        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
