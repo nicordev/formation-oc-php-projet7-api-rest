@@ -113,6 +113,7 @@ class CustomerController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
+     * @View()
      */
     public function editCustomerAction(Customer $customer, Customer $modifiedCustomer, EntityManagerInterface $manager)
     {
@@ -130,9 +131,8 @@ class CustomerController extends AbstractFOSRestController
         }
 
         $manager->flush();
-        $view = $this->view($customer, Response::HTTP_ACCEPTED);
 
-        return $this->handleView($view);
+        return $this->view($customer, Response::HTTP_ACCEPTED);
     }
 
     /**

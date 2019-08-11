@@ -50,30 +50,30 @@ class CustomerControllerTest extends TestCase
 
     public function testEditCustomerAction()
     {
-        $modifiedCustomer = new Customer();
-        $modifiedCustomer->setName("test-modified-name");
-        $modifiedCustomer->setEmail("modified.customer@test.com");
-        $modifiedCustomer->setSurname("test-modified-surname");
-        $modifiedCustomer->setAddress("test-modified-address");
-        $body = $this->serializer->serialize($modifiedCustomer, "json");
-
-        $this->client->request(
-            'POST',
-            "/api/customers/{$this->testCustomer->getId()}",
-            [],
-            [],
-            [
-                "CONTENT_TYPE" => "application/json"
-            ],
-            $body
+        $customer = $this->createMockedCustomer();
+        $modifiedCustomer = $this->createMockedCustomer(
+            22,
+            "test-modified-name",
+            "test-modified-surname",
+            "modified.customer@test.com",
+            "test-modified-address"
         );
-        $response = $this->client->getResponse();
+        $controller = $this->createCustomerController();
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->expects($this->once())
+            ->method("flush");
+        $manager->expects($this->never())
+            ->method("persist");
+        $manager->expects($this->never())
+            ->method("remove");
+
+        $response = $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
-        $responseCustomer = $this->serializer->deserialize($response->getContent(), Customer::class, "json");
-        $this->assertEquals($modifiedCustomer->getName(), $responseCustomer->getName());
-        $this->assertEquals($modifiedCustomer->getEmail(), $responseCustomer->getEmail());
-        $this->assertEquals($modifiedCustomer->getSurname(), $responseCustomer->getSurname());
-        $this->assertEquals($modifiedCustomer->getAddress(), $responseCustomer->getAddress());
+        $this->assertInstanceOf(View::class, $response);
+
+        $responseCustomer = $response->getData();
+        $this->checkCustomer($customer, $responseCustomer);
     }
 
     public function testDeleteCustomerAction()
@@ -100,7 +100,7 @@ class CustomerControllerTest extends TestCase
     }
 
     private function createMockedCustomer(
-        int $id = 77,
+        ?int $id = 77,
         string $name = "test-customer-name",
         string $surname = "test-customer-surname",
         string $email = "customer@test.com",
