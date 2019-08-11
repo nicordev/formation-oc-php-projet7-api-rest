@@ -5,7 +5,9 @@ namespace App\Tests\Controller;
 
 use App\Controller\ProductController;
 use App\Entity\Product;
+use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
@@ -31,6 +33,7 @@ class ProductControllerTest extends TestCase
         $response = $controller->getProductAction($product);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
 
         $responseProduct = $response->getData();
         $this->assertEquals($product->getId(), $responseProduct->getId());
@@ -38,6 +41,40 @@ class ProductControllerTest extends TestCase
         $this->assertEquals($product->getBrand(), $responseProduct->getBrand());
         $this->assertEquals($product->getPrice(), $responseProduct->getPrice());
         $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
+    }
+
+    public function testGetProductsAction_defaultValues()
+    {
+        $controller = $this->createProductController();
+        $property = "price";
+        $order = "asc";
+        $search = null;
+        $exact = "true";
+        $page = 1;
+        $quantity = 5;
+
+        $repository = $this->prophesize(ProductRepository::class);
+        $exactValue = $exact !== "false";
+        $repository->getPage(
+            $page,
+            $quantity,
+            [$property => strtoupper($order)],
+            null,
+            $exactValue
+        )->shouldBeCalled();
+
+        $response = $controller->getProductsAction(
+            $repository->reveal(),
+            $property,
+            $order,
+            $search,
+            $exact,
+            $page,
+            $quantity
+        );
+        $this->assertObjectHasAttribute("statusCode", $response);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
     }
 
     public function testCreateProductAction()
@@ -52,6 +89,7 @@ class ProductControllerTest extends TestCase
         $response = $controller->createProductAction($product, $manager->reveal(), $violations);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
 
         $responseProduct = $response->getData();
         $this->assertEquals($product->getId(), $responseProduct->getId());
@@ -86,6 +124,8 @@ class ProductControllerTest extends TestCase
         $response = $controller->editProductAction($product, $modifiedProduct, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
+
         $responseProduct = $response->getData();
         $this->assertEquals($product->getModel(), $responseProduct->getModel());
         $this->assertEquals($product->getBrand(), $responseProduct->getBrand());
@@ -104,6 +144,7 @@ class ProductControllerTest extends TestCase
         $response = $controller->deleteProductAction($product, $manager->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
     }
 
     // Private

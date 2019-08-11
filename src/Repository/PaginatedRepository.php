@@ -39,8 +39,8 @@ abstract class PaginatedRepository extends ServiceEntityRepository
     public function getPage(
         int $pageNumber,
         int $itemsPerPage,
-        array $orderBy = null,
-        array $criteria = null,
+        ?array $orderBy = null,
+        ?array $criteria = null,
         bool $exactSearch = true
     ) {
         $this->paginator->update($pageNumber, $itemsPerPage, $this->count([]));

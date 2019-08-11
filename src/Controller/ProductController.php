@@ -83,14 +83,7 @@ class ProductController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
-     * @param ProductRepository $repository
-     * @param string $property
-     * @param string $order
-     * @param string|null $search
-     * @param string $exact
-     * @param int $page
-     * @param int $quantity
-     * @return Response
+     * @View()
      */
     public function getProductsAction(
         ProductRepository $repository,
@@ -136,9 +129,7 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_COUNT]
         );
 
-        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
