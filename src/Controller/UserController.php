@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Helper\TokenHandler;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
 use App\Response\DeleteUserResponse;
@@ -16,6 +15,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use FOS\RestBundle\Controller\Annotations\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -35,12 +35,11 @@ class UserController extends AbstractFOSRestController
      *     path = "/api/users/{name}",
      *     name = "user_show_name"
      * )
+     * @View()
      */
     public function getUserAction(User $user)
     {
-        $view = $this->view($user, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($user, Response::HTTP_OK);
     }
 
     /**
