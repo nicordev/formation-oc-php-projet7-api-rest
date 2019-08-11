@@ -107,16 +107,18 @@ class UserControllerTest extends TestCase
         $this->checkUser($user, $responseUser);
     }
 
-    public function testDeleteAction()
+    public function testDeleteUserAction()
     {
-        $this->client->request(
-            'DELETE',
-            "/api/users/{$this->testUser->getId()}"
-        );
-        $response = $this->client->getResponse();
+        $user = $this->createMockedUser();
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->remove($user)->shouldBeCalled();
+        $manager->flush()->shouldBeCalled();
+        $controller = $this->createUserController();
+
+        $response = $controller->deleteUserAction($user, $manager->reveal());
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $responseContentObject = $this->serializer->deserialize($response->getContent(), DeleteUserResponse::class, "json");
-        $this->checkEntity($responseContentObject->entity, $this->testUser, true);
+        $this->assertInstanceOf(View::class, $response);
     }
 
     // Private

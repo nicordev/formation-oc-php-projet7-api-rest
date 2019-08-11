@@ -153,13 +153,13 @@ class UserController extends AbstractFOSRestController
      *     "/api/users/{id}",
      *     name = "user_delete"
      * )
+     * @View()
      */
     public function deleteUserAction(User $user, EntityManagerInterface $manager)
     {
         $manager->remove($user);
         $manager->flush();
-        $view = $this->view(new DeleteUserResponse($user), Response::HTTP_OK);
 
-        return $this->handleView($view);
+        return $this->view(new DeleteUserResponse($user), Response::HTTP_OK);
     }
 }
