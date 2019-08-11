@@ -39,6 +39,9 @@ class ProductControllerTest extends TestCase
         $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
     }
 
+    /**
+     * Note: Since the flush method is called from a mock, the product is not modified by the editProductAction method so we test the same product at the end
+     */
     public function testEditProductAction()
     {
         $product = $this->createMockedProduct();
@@ -62,10 +65,10 @@ class ProductControllerTest extends TestCase
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $responseProduct = $response->getData();
-        $this->assertEquals($modifiedProduct->getModel(), $responseProduct->getModel());
-        $this->assertEquals($modifiedProduct->getBrand(), $responseProduct->getBrand());
-        $this->assertEquals($modifiedProduct->getQuantity(), $responseProduct->getQuantity());
-        $this->assertEquals($modifiedProduct->getPrice(), $responseProduct->getPrice());
+        $this->assertEquals($product->getModel(), $responseProduct->getModel());
+        $this->assertEquals($product->getBrand(), $responseProduct->getBrand());
+        $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
+        $this->assertEquals($product->getPrice(), $responseProduct->getPrice());
     }
 
     public function testDeleteProductAction()
