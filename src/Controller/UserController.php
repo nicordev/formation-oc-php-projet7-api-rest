@@ -121,6 +121,7 @@ class UserController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
+     * @View()
      */
     public function editUserAction(
         User $user,
@@ -136,16 +137,15 @@ class UserController extends AbstractFOSRestController
         }
         if (!empty($modifiedUser->getPassword())) {
             $encoded = $encoder->encodePassword($modifiedUser, $modifiedUser->getPassword());
-            $modifiedUser->setPassword($encoded);
+            $user->setPassword($encoded);
         }
         if (!empty($modifiedUser->getRoles() !== null)) {
             $user->setRoles($modifiedUser->getRoles());
         }
 
         $manager->flush();
-        $view = $this->view($user, Response::HTTP_ACCEPTED);
 
-        return $this->handleView($view);
+        return $this->view($user, Response::HTTP_ACCEPTED);
     }
 
     /**

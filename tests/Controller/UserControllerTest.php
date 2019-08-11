@@ -59,7 +59,7 @@ class UserControllerTest extends TestCase
         $manager->flush()->shouldBeCalled();
         $encoder = $this->prophesize(UserPasswordEncoderInterface::class);
         $encoder
-            ->encodePassword($user, "test-password")
+            ->encodePassword($user, $user->getPassword())
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
@@ -75,31 +75,36 @@ class UserControllerTest extends TestCase
 
     public function testEditUserAction()
     {
-        $modifiedUser = new User();
-        $modifiedUser->setName("test-modified-name")
-            ->setEmail("modified.user@test.com")
-            ->setPassword("modified.password")
-            ->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
-        $body = $this->serializer->serialize($modifiedUser, "json");
-
-        $this->client->request(
-            'POST',
-            "/api/users/{$this->testUser->getId()}",
-            [],
-            [],
-            [
-                "CONTENT_TYPE" => "application/json"
-            ],
-            $body
+        $user = $this->createMockedUser();
+        $modifiedUser = $this->createMockedUser(
+            22,
+            "test-modified-name",
+            "modified.user@test.com",
+            "test-modified-password",
+            ["ROLE_USER", "ROLE_ADMIN"]
         );
-        $response = $this->client->getResponse();
+        $controller = $this->createUserController();
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->expects($this->once())
+            ->method("flush");
+        $manager->expects($this->never())
+            ->method("persist");
+        $manager->expects($this->never())
+            ->method("remove");
+        $encoder = $this->prophesize(UserPasswordEncoderInterface::class);
+        $encoder
+            ->encodePassword($user, $modifiedUser->getPassword())
+            ->willReturn("encoded-password")
+            ->shouldBeCalled()
+        ;
+
+        $response = $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
-        $responseUser = $this->serializer->deserialize($response->getContent(), User::class, "json");
-        $this->assertEquals($modifiedUser->getName(), $responseUser->getName());
-        $this->assertEquals($modifiedUser->getEmail(), $responseUser->getEmail());
-        $this->assertEquals($modifiedUser->getPassword(), $responseUser->getPassword());
-        $this->assertEquals($modifiedUser->getRoles(), $responseUser->getRoles());
-        $this->assertEquals($modifiedUser->getApiToken(), $responseUser->getApiToken());
+        $this->assertInstanceOf(View::class, $response);
+
+        $responseUser = $response->getData();
+        $this->checkUser($user, $responseUser);
     }
 
     public function testDeleteAction()
