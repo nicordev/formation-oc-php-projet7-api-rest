@@ -59,6 +59,7 @@ class UserController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
+     * @View()
      */
     public function getUsersAction(
         UserRepository $repository,
@@ -80,9 +81,7 @@ class UserController extends AbstractFOSRestController
             $paginatedUsers[UserRepository::KEY_PAGING_COUNT]
         );
 
-        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
@@ -97,6 +96,7 @@ class UserController extends AbstractFOSRestController
      *          "validator" = {"groups" = "Create"}
      *     }
      * )
+     * @View()
      */
     public function createUserAction(
         User $newUser,
@@ -110,17 +110,8 @@ class UserController extends AbstractFOSRestController
         $newUser->setPassword($encoded);
         $manager->persist($newUser);
         $manager->flush();
-        $view = $this->view(
-            $newUser,
-            Response::HTTP_CREATED,
-            ['Location' => $this->generateUrl(
-                'product_show_id',
-                ['id' => $newUser->getId()],
-                UrlGeneratorInterface::ABSOLUTE_URL
-            )]
-        );
 
-        return $this->handleView($view);
+        return $this->view($newUser, Response::HTTP_CREATED);
     }
 
     /**

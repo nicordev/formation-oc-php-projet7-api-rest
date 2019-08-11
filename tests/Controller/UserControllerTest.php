@@ -5,10 +5,14 @@ namespace App\Tests\Controller;
 
 use App\Controller\UserController;
 use App\Entity\User;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class UserControllerTest extends TestCase
 {
@@ -20,6 +24,49 @@ class UserControllerTest extends TestCase
         $response = $controller->getUserAction($user);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
+
+        $responseUser = $response->getData();
+        $this->checkUser($user, $responseUser);
+    }
+
+    public function testGetUsersAction()
+    {
+        $controller = $this->createUserController();
+        $page = 1;
+        $quantity = 5;
+
+        $repository = $this->prophesize(UserRepository::class);
+        $repository->getPage($page, $quantity)->shouldBeCalled();
+
+        $response = $controller->getUsersAction(
+            $repository->reveal(),
+            $page,
+            $quantity
+        );
+        $this->assertObjectHasAttribute("statusCode", $response);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertInstanceOf(View::class, $response);
+    }
+
+    public function testCreateUserAction()
+    {
+        $user = $this->createMockedUser();
+        $controller = $this->createUserController();
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->persist($user)->shouldBeCalled();
+        $manager->flush()->shouldBeCalled();
+        $encoder = $this->prophesize(UserPasswordEncoderInterface::class);
+        $encoder
+            ->encodePassword($user, "test-password")
+            ->willReturn("encoded-password")
+            ->shouldBeCalled()
+        ;
+
+        $response = $controller->createUserAction($user, $manager->reveal(), $violations, $encoder->reveal());
+        $this->assertObjectHasAttribute("statusCode", $response);
+        $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseUser = $response->getData();
@@ -96,6 +143,7 @@ class UserControllerTest extends TestCase
             ->willReturn($password);
         $mockedUser->method("getRoles")
             ->willReturn($roles);
+        $mockedUser->method("setPassword");
 
         return $mockedUser;
     }
