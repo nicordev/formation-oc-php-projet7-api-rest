@@ -78,14 +78,16 @@ class CustomerControllerTest extends TestCase
 
     public function testDeleteCustomerAction()
     {
-        $this->client->request(
-            'DELETE',
-            "/api/customers/{$this->testCustomer->getId()}"
-        );
-        $response = $this->client->getResponse();
+        $customer = $this->createMockedCustomer();
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->remove($customer)->shouldBeCalled();
+        $manager->flush()->shouldBeCalled();
+        $controller = $this->createCustomerController();
+
+        $response = $controller->deleteCustomerAction($customer, $manager->reveal());
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $responseContentObject = $this->serializer->deserialize($response->getContent(), DeleteCustomerResponse::class, "json");
-        $this->checkEntity($responseContentObject->entity, $this->testCustomer, true);
+        $this->assertInstanceOf(View::class, $response);
     }
 
     // Private
