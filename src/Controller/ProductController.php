@@ -182,6 +182,7 @@ class ProductController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
+     * @View()
      */
     public function editProductAction(Product $product, Product $modifiedProduct, EntityManagerInterface $manager)
     {
@@ -199,9 +200,8 @@ class ProductController extends AbstractFOSRestController
         }
 
         $manager->flush();
-        $view = $this->view($product, Response::HTTP_ACCEPTED);
 
-        return $this->handleView($view);
+        return $this->view($product, Response::HTTP_ACCEPTED);
     }
 
     /**
@@ -209,13 +209,13 @@ class ProductController extends AbstractFOSRestController
      *     "/api/products/{id}",
      *     name = "product_delete"
      * )
+     * @View()
      */
     public function deleteProductAction(Product $product, EntityManagerInterface $manager)
     {
         $manager->remove($product);
         $manager->flush();
-        $view = $this->view(new DeleteProductResponse($product), Response::HTTP_OK);
 
-        return $this->handleView($view);
+        return  $this->view(new DeleteProductResponse($product), Response::HTTP_OK);
     }
 }

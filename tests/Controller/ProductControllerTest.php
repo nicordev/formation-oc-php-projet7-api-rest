@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 
 use App\Controller\ProductController;
 use App\Entity\Product;
+use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\ViewHandler;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
@@ -23,60 +24,44 @@ class ProductControllerTest extends TestCase
 {
     public function testGetProductAction()
     {
-        $id = 7777;
-        $model = "test-model";
-        $brand = "test-brand";
-        $price = 9999;
-        $quantity = 8888;
+        $product = $this->createMockedProduct();
+        $controller = $this->createProductController();
 
-        $product = $this->createMock(Product::class);
-        $product->method("getId")
-            ->willReturn($id);
-        $product->method("getModel")
-            ->willReturn($model);
-        $product->method("getBrand")
-            ->willReturn($brand);
-        $product->method("getPrice")
-            ->willReturn($price);
-        $product->method("getQuantity")
-            ->willReturn($quantity);
-        $viewHandler = $this->createMock(ViewHandler::class);
-        $controller = new ProductController();
-        $controller->setViewHandler($viewHandler);
         $response = $controller->getProductAction($product);
-
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+
         $responseProduct = $response->getData();
-        $this->assertEquals($id, $responseProduct->getId());
-        $this->assertEquals($model, $responseProduct->getModel());
-        $this->assertEquals($brand, $responseProduct->getBrand());
-        $this->assertEquals($price, $responseProduct->getPrice());
-        $this->assertEquals($quantity, $responseProduct->getQuantity());
+        $this->assertEquals($product->getId(), $responseProduct->getId());
+        $this->assertEquals($product->getModel(), $responseProduct->getModel());
+        $this->assertEquals($product->getBrand(), $responseProduct->getBrand());
+        $this->assertEquals($product->getPrice(), $responseProduct->getPrice());
+        $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
     }
 
     public function testEditProductAction()
     {
-        $modifiedProduct = new Product();
-        $modifiedProduct->setModel("test-modified-model");
-        $modifiedProduct->setBrand("test-modified-brand");
-        $modifiedProduct->setQuantity(9999);
-        $modifiedProduct->setPrice(9999);
-        $body = $this->serializer->serialize($modifiedProduct, "json");
-
-        $this->client->request(
-            'POST',
-            "/api/products/{$this->testProduct->getId()}",
-            [],
-            [],
-            [
-                "CONTENT_TYPE" => "application/json"
-            ],
-            $body
+        $product = $this->createMockedProduct();
+        $modifiedProduct = $this->createMockedProduct(
+            22,
+            "test-modified-model",
+            "test-modified-brand",
+            222,
+            2222
         );
-        $response = $this->client->getResponse();
+        $controller = $this->createProductController();
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->expects($this->once())
+            ->method("flush");
+        $manager->expects($this->never())
+            ->method("persist");
+        $manager->expects($this->never())
+            ->method("remove");
+
+        $response = $controller->editProductAction($product, $modifiedProduct, $manager);
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
-        $responseProduct = $this->serializer->deserialize($response->getContent(), Product::class, "json");
+        $responseProduct = $response->getData();
         $this->assertEquals($modifiedProduct->getModel(), $responseProduct->getModel());
         $this->assertEquals($modifiedProduct->getBrand(), $responseProduct->getBrand());
         $this->assertEquals($modifiedProduct->getQuantity(), $responseProduct->getQuantity());
@@ -85,13 +70,47 @@ class ProductControllerTest extends TestCase
 
     public function testDeleteProductAction()
     {
-        $this->client->request(
-            'DELETE',
-            "/api/products/{$this->testProduct->getId()}"
-        );
-        $response = $this->client->getResponse();
+        $product = $this->createMockedProduct();
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->remove($product)->shouldBeCalled();
+        $manager->flush()->shouldBeCalled();
+        $controller = $this->createProductController();
+
+        $response = $controller->deleteProductAction($product, $manager->reveal());
+        $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $responseContentObject = $this->serializer->deserialize($response->getContent(), DeleteProductResponse::class, "json");
-        $this->checkEntity($responseContentObject->entity, $this->testProduct);
+    }
+
+    // Private
+
+    private function createProductController()
+    {
+        $viewHandler = $this->createMock(ViewHandler::class);
+        $controller = new ProductController();
+        $controller->setViewHandler($viewHandler);
+
+        return $controller;
+    }
+
+    private function createMockedProduct(
+        int $id = 77,
+        string $model = "test-model", 
+        string $brand = "test-brand", 
+        int $price = 888, 
+        int $quantity = 9999
+    ) {
+        $mockedProduct = $this->createMock(Product::class);
+        $mockedProduct->method("getId")
+            ->willReturn($id);
+        $mockedProduct->method("getModel")
+            ->willReturn($model);
+        $mockedProduct->method("getBrand")
+            ->willReturn($brand);
+        $mockedProduct->method("getPrice")
+            ->willReturn($price);
+        $mockedProduct->method("getQuantity")
+            ->willReturn($quantity);
+
+        return $mockedProduct;
     }
 }
