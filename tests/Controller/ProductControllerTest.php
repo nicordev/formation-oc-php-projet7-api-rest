@@ -17,7 +17,7 @@ class ProductControllerTest extends TestCase
 {
     public function testGetProductAction()
     {
-        $product = $this->createMockedProduct();
+        $product = $this->createStubProduct();
         $controller = $this->createProductController();
 
         $response = $controller->getProductAction($product);
@@ -69,7 +69,7 @@ class ProductControllerTest extends TestCase
 
     public function testCreateProductAction()
     {
-        $product = $this->createMockedProduct();
+        $product = $this->createStubProduct();
         $controller = $this->createProductController();
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
@@ -89,14 +89,31 @@ class ProductControllerTest extends TestCase
         $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
     }
 
-    /**
-     * Note: Since the flush method is called from a mock, the product is not modified by the editProductAction method so we test the same product at the end
-     */
     public function testEditProductAction()
     {
-        $product = $this->createMockedProduct();
-        $modifiedProduct = $this->createMockedProduct(
-            22,
+        $product = $this->createStubProductFromProphecy();
+        $product->setModel("test-modified-model")->will(function () {
+            $this->getModel()->willReturn("test-modified-model");
+
+            return $this;
+        });
+        $product->setBrand("test-modified-brand")->will(function () {
+            $this->getBrand()->willReturn("test-modified-brand");
+
+            return $this;
+        });
+        $product->setPrice(222)->will(function () {
+            $this->getPrice()->willReturn(222);
+
+            return $this;
+        });
+        $product->setQuantity(2222)->will(function () {
+            $this->getQuantity()->willReturn(2222);
+
+            return $this;
+        });
+        $modifiedProduct = $this->createStubProduct(
+            null,
             "test-modified-model",
             "test-modified-brand",
             222,
@@ -111,21 +128,21 @@ class ProductControllerTest extends TestCase
         $manager->expects($this->never())
             ->method("remove");
 
-        $response = $controller->editProductAction($product, $modifiedProduct, $manager);
+        $response = $controller->editProductAction($product->reveal(), $modifiedProduct, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseProduct = $response->getData();
-        $this->assertEquals($product->getModel(), $responseProduct->getModel());
-        $this->assertEquals($product->getBrand(), $responseProduct->getBrand());
-        $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
-        $this->assertEquals($product->getPrice(), $responseProduct->getPrice());
+        $this->assertEquals($modifiedProduct->getModel(), $responseProduct->getModel());
+        $this->assertEquals($modifiedProduct->getBrand(), $responseProduct->getBrand());
+        $this->assertEquals($modifiedProduct->getQuantity(), $responseProduct->getQuantity());
+        $this->assertEquals($modifiedProduct->getPrice(), $responseProduct->getPrice());
     }
 
     public function testDeleteProductAction()
     {
-        $product = $this->createMockedProduct();
+        $product = $this->createStubProduct();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
@@ -148,8 +165,8 @@ class ProductControllerTest extends TestCase
         return $controller;
     }
 
-    private function createMockedProduct(
-        int $id = 77,
+    private function createStubProduct(
+        ?int $id = 77,
         string $model = "test-model", 
         string $brand = "test-brand", 
         int $price = 888, 
@@ -168,5 +185,22 @@ class ProductControllerTest extends TestCase
             ->willReturn($quantity);
 
         return $mockedProduct;
+    }
+
+    public function createStubProductFromProphecy(
+        ?int $id = 77,
+        string $model = "test-model",
+        string $brand = "test-brand",
+        int $price = 888,
+        int $quantity = 9999
+    ) {
+        $product = $this->prophesize(Product::class);
+        $product->getId()->willReturn($id);
+        $product->getModel()->willReturn($model);
+        $product->getBrand()->willReturn($brand);
+        $product->getPrice()->willReturn($price);
+        $product->getQuantity()->willReturn($quantity);
+
+        return $product;
     }
 }
