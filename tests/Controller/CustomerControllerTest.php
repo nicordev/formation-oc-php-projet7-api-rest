@@ -17,7 +17,7 @@ class CustomerControllerTest extends TestCase
 {
     public function testGetCustomerAction()
     {
-        $customer = $this->createMockedCustomer();
+        $customer = $this->createStubCustomer();
         $controller = $this->createCustomerController();
 
         $response = $controller->getCustomerAction($customer);
@@ -50,7 +50,7 @@ class CustomerControllerTest extends TestCase
 
     public function testCreateCustomerAction()
     {
-        $customer = $this->createMockedCustomer();
+        $customer = $this->createStubCustomer();
         $controller = $this->createCustomerController();
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
@@ -68,9 +68,26 @@ class CustomerControllerTest extends TestCase
 
     public function testEditCustomerAction()
     {
-        $customer = $this->createMockedCustomer();
-        $modifiedCustomer = $this->createMockedCustomer(
-            22,
+        $customer = $this->createStubCustomerFromProphecy();
+        $customer->setName("test-modified-name")->will(function () {
+            $this->getName()->willReturn("test-modified-name");
+            return $this;
+        });
+        $customer->setSurname("test-modified-surname")->will(function () {
+            $this->getSurname()->willReturn("test-modified-surname");
+            return $this;
+        });
+        $customer->setEmail("modified.customer@test.com")->will(function () {
+            $this->getEmail()->willReturn("modified.customer@test.com");
+            return $this;
+        });
+        $customer->setAddress("test-modified-address")->will(function () {
+            $this->getAddress()->willReturn("test-modified-address");
+            return $this;
+        });
+
+        $modifiedCustomer = $this->createStubCustomer(
+            null,
             "test-modified-name",
             "test-modified-surname",
             "modified.customer@test.com",
@@ -85,18 +102,18 @@ class CustomerControllerTest extends TestCase
         $manager->expects($this->never())
             ->method("remove");
 
-        $response = $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
+        $response = $controller->editCustomerAction($customer->reveal(), $modifiedCustomer, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseCustomer = $response->getData();
-        $this->checkCustomer($customer, $responseCustomer);
+        $this->checkCustomer($modifiedCustomer, $responseCustomer, false);
     }
 
     public function testDeleteCustomerAction()
     {
-        $customer = $this->createMockedCustomer();
+        $customer = $this->createStubCustomer();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($customer)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
@@ -119,7 +136,7 @@ class CustomerControllerTest extends TestCase
         return $controller;
     }
 
-    private function createMockedCustomer(
+    private function createStubCustomer(
         ?int $id = 77,
         string $name = "test-customer-name",
         string $surname = "test-customer-surname",
@@ -141,9 +158,28 @@ class CustomerControllerTest extends TestCase
         return $mockedCustomer;
     }
 
-    private function checkCustomer($expectedCustomer, $responseCustomer)
+    public function createStubCustomerFromProphecy(
+        ?int $id = 77,
+        string $name = "test-customer-name",
+        string $surname = "test-customer-surname",
+        string $email = "customer@test.com",
+        string $address = "test-customer-address"
+    ) {
+        $customer = $this->prophesize(Customer::class);
+        $customer->getId()->willReturn($id);
+        $customer->getName()->willReturn($name);
+        $customer->getSurname()->willReturn($surname);
+        $customer->getEmail()->willReturn($email);
+        $customer->getAddress()->willReturn($address);
+
+        return $customer;
+    }
+
+    private function checkCustomer($expectedCustomer, $responseCustomer, bool $checkId = true)
     {
-        $this->assertEquals($expectedCustomer->getId(), $responseCustomer->getId());
+        if ($checkId) {
+            $this->assertEquals($expectedCustomer->getId(), $responseCustomer->getId());
+        }
         $this->assertEquals($expectedCustomer->getName(), $responseCustomer->getName());
         $this->assertEquals($expectedCustomer->getSurname(), $responseCustomer->getSurname());
         $this->assertEquals($expectedCustomer->getEmail(), $responseCustomer->getEmail());
