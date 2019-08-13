@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 
 use App\Controller\CustomerController;
 use App\Entity\Customer;
+use App\Entity\User;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
@@ -154,6 +155,13 @@ class CustomerControllerTest extends TestCase
             ->willReturn($email);
         $mockedCustomer->method("getAddress")
             ->willReturn($address);
+        $mockedCustomer->method("getUser")
+            ->willReturn(
+                (new User())->setName("user-name")
+                    ->setEmail("user@mail.com")
+                    ->setPassword("user-password")
+                    ->setRoles(["ROLE_USER"])
+            );
 
         return $mockedCustomer;
     }
