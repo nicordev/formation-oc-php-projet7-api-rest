@@ -28,6 +28,7 @@ class AppFixtures extends Fixture
         "hotmail.com",
         "orange.com"
     ];
+    private $users = [];
 
     private const HASHED_PASSWORD = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
 
@@ -65,6 +66,7 @@ class AppFixtures extends Fixture
                 ->setName($userNames[$i])
                 ->setRoles(["ROLE_USER"]);
             $this->manager->persist($user);
+            $this->users[] = $user;
         }
 
         // Easy to get user
@@ -98,6 +100,7 @@ class AppFixtures extends Fixture
             $customer->setSurname($faker->lastName);
             $customer->setEmail($faker->email);
             $customer->setAddress($faker->address);
+            $customer->setUser($this->users[mt_rand(0, count($this->users) - 1)]);
 
             $this->manager->persist($customer);
         }
