@@ -94,22 +94,18 @@ class ProductControllerTest extends TestCase
         $product = $this->createStubProductFromProphecy();
         $product->setModel("test-modified-model")->will(function () {
             $this->getModel()->willReturn("test-modified-model");
-
             return $this;
         });
         $product->setBrand("test-modified-brand")->will(function () {
             $this->getBrand()->willReturn("test-modified-brand");
-
             return $this;
         });
         $product->setPrice(222)->will(function () {
             $this->getPrice()->willReturn(222);
-
             return $this;
         });
         $product->setQuantity(2222)->will(function () {
             $this->getQuantity()->willReturn(2222);
-
             return $this;
         });
         $modifiedProduct = $this->createStubProduct(

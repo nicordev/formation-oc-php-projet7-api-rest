@@ -18,7 +18,7 @@ class UserControllerTest extends TestCase
 {
     public function testGetUserAction()
     {
-        $user = $this->createMockedUser();
+        $user = $this->createStubUser();
         $controller = $this->createUserController();
 
         $response = $controller->getUserAction($user);
@@ -51,7 +51,7 @@ class UserControllerTest extends TestCase
 
     public function testCreateUserAction()
     {
-        $user = $this->createMockedUser();
+        $user = $this->createStubUser();
         $controller = $this->createUserController();
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
@@ -75,9 +75,25 @@ class UserControllerTest extends TestCase
 
     public function testEditUserAction()
     {
-        $user = $this->createMockedUser();
-        $modifiedUser = $this->createMockedUser(
-            22,
+        $user = $this->createStubUserFromProphecy();
+        $user->setName("test-modified-name")->will(function () {
+            $this->getName()->willReturn("test-modified-name");
+            return $this;
+        });
+        $user->setEmail("modified.user@test.com")->will(function () {
+            $this->getEmail()->willReturn("modified.user@test.com");
+            return $this;
+        });
+        $user->setPassword("encoded-password")->will(function () {
+            $this->getPassword()->willReturn("test-modified-password");
+            return $this;
+        });
+        $user->setRoles(["ROLE_USER", "ROLE_ADMIN"])->will(function () {
+            $this->getRoles()->willReturn(["ROLE_USER", "ROLE_ADMIN"]);
+            return $this;
+        });
+        $modifiedUser = $this->createStubUser(
+            null,
             "test-modified-name",
             "modified.user@test.com",
             "test-modified-password",
@@ -93,23 +109,23 @@ class UserControllerTest extends TestCase
             ->method("remove");
         $encoder = $this->prophesize(UserPasswordEncoderInterface::class);
         $encoder
-            ->encodePassword($user, $modifiedUser->getPassword())
+            ->encodePassword($modifiedUser, $modifiedUser->getPassword())
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
 
-        $response = $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+        $response = $controller->editUserAction($user->reveal(), $modifiedUser, $manager, $encoder->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseUser = $response->getData();
-        $this->checkUser($user, $responseUser);
+        $this->checkUser($modifiedUser, $responseUser, false);
     }
 
     public function testDeleteUserAction()
     {
-        $user = $this->createMockedUser();
+        $user = $this->createStubUser();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($user)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
@@ -132,8 +148,8 @@ class UserControllerTest extends TestCase
         return $controller;
     }
 
-    private function createMockedUser(
-        int $id = 77,
+    private function createStubUser(
+        ?int $id = 77,
         string $name = "test-user-name",
         string $email = "user@test.com",
         string $password = "test-password",
@@ -155,9 +171,28 @@ class UserControllerTest extends TestCase
         return $mockedUser;
     }
 
-    private function checkUser($expectedUser, $responseUser)
+    private function createStubUserFromProphecy(
+        int $id = 77,
+        string $name = "test-user-name",
+        string $email = "user@test.com",
+        string $password = "test-password",
+        array $roles = ["ROLE_USER"]
+    ) {
+        $user = $this->prophesize(User::class);
+        $user->getId()->willReturn($id);
+        $user->getName()->willReturn($name);
+        $user->getEmail()->willReturn($email);
+        $user->getPassword()->willReturn($password);
+        $user->getRoles()->willReturn($roles);
+
+        return $user;
+    }
+
+    private function checkUser($expectedUser, $responseUser, bool $checkId = true)
     {
-        $this->assertEquals($expectedUser->getId(), $responseUser->getId());
+        if ($checkId) {
+            $this->assertEquals($expectedUser->getId(), $responseUser->getId());
+        }
         $this->assertEquals($expectedUser->getName(), $responseUser->getName());
         $this->assertEquals($expectedUser->getEmail(), $responseUser->getEmail());
         $this->assertEquals($expectedUser->getPassword(), $responseUser->getPassword());
