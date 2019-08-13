@@ -6,6 +6,7 @@ use App\Entity\Customer;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
+use App\Repository\UserRepository;
 use App\Response\DeleteCustomerResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -95,15 +96,15 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @View()
      */
-    public function createCustomerAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
+    public function createCustomerAction(
+        Customer $newCustomer,
+        EntityManagerInterface $manager,
+        ConstraintViolationListInterface $violations
+    )
     {
         $this->handleViolations($violations);
 
-        if (!$newCustomer->getUser()) {
-            $user = $this->getUser();
-            $newCustomer->setUser($user);
-        }
-
+        $newCustomer->setUser($this->getUser());
         $manager->persist($newCustomer);
         $manager->flush();
 

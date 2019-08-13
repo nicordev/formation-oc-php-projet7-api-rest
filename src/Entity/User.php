@@ -58,7 +58,7 @@ class User implements UserInterface
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Customer", mappedBy="user", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Customer", mappedBy="user", orphanRemoval=true, cascade={"persist"})
      */
     private $customers;
 

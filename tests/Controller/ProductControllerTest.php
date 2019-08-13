@@ -5,10 +5,12 @@ namespace App\Tests\Controller;
 
 use App\Controller\ProductController;
 use App\Entity\Product;
+use App\Repository\PaginatedRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
+use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -33,7 +35,7 @@ class ProductControllerTest extends TestCase
         $this->assertEquals($product->getQuantity(), $responseProduct->getQuantity());
     }
 
-    public function testGetProductsAction_defaultValues()
+    public function testGetProductsAction()
     {
         $controller = $this->createProductController();
         $property = "price";
@@ -42,6 +44,20 @@ class ProductControllerTest extends TestCase
         $exact = "true";
         $page = 1;
         $quantity = 5;
+        $products = (function () {
+            $products = [];
+
+            for ($i = 0; $i < 5; $i++) {
+                $products[] = (new Product())
+                    ->setModel("p$i")
+                    ->setBrand("b$i")
+                    ->setQuantity($i * 10)
+                    ->setPrice($i * 10)
+                ;
+            }
+
+            return $products;
+        })();
 
         $repository = $this->prophesize(ProductRepository::class);
         $exactValue = $exact !== "false";
@@ -51,7 +67,12 @@ class ProductControllerTest extends TestCase
             [$property => strtoupper($order)],
             null,
             $exactValue
-        )->shouldBeCalled();
+        )->willReturn([
+            PaginatedRepository::KEY_PAGING_ENTITIES => $products,
+            PaginatedRepository::KEY_PAGING_COUNT => 1,
+            PaginatedRepository::KEY_PAGING_NEXT_PAGE => 2,
+            PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
+        ])->shouldBeCalled();
 
         $response = $controller->getProductsAction(
             $repository->reveal(),
@@ -65,6 +86,12 @@ class ProductControllerTest extends TestCase
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
+
+        $responseContent = $response->getData();
+        $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
+        /*
+         * TODO: check response content
+         */
     }
 
     public function testCreateProductAction()

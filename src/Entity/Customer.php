@@ -66,7 +66,7 @@ class Customer
     private $address;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="customers")
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="customers", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;

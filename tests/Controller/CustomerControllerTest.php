@@ -11,7 +11,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CustomerControllerTest extends TestCase
@@ -51,14 +54,27 @@ class CustomerControllerTest extends TestCase
 
     public function testCreateCustomerAction()
     {
-        $customer = $this->createStubCustomer();
-        $controller = $this->createCustomerController();
-        $violations = $this->createMock(ConstraintViolationListInterface::class);
-        $manager = $this->prophesize(EntityManagerInterface::class);
-        $manager->persist($customer)->shouldBeCalled();
-        $manager->flush()->shouldBeCalled();
+        $customer = $this->createCustomer();
+        $user = new User();
+        $controller = $this->createCustomerController($user);
 
-        $response = $controller->createCustomerAction($customer, $manager->reveal(), $violations);
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager
+            ->expects($this->once())
+            ->method("persist")
+            ->with($this->callback(function (Customer $customer) use ($user) {
+                $this->assertSame($user, $customer->getUser());
+
+                return true;
+            }))
+        ;
+        $manager
+            ->expects($this->once())
+            ->method("flush")
+        ;
+
+        $response = $controller->createCustomerAction($customer, $manager, $violations);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -128,13 +144,67 @@ class CustomerControllerTest extends TestCase
 
     // Private
 
-    private function createCustomerController()
+    /**
+     * Create a CustomerController instance with a ViewHandler. Optionally: a user to use Controller::getUser()
+     *
+     * @param User|null $user
+     * @return CustomerController
+     */
+    private function createCustomerController(?User $user = null)
     {
-        $viewHandler = $this->createMock(ViewHandler::class);
         $controller = new CustomerController();
+        $viewHandler = $this->createMock(ViewHandler::class);
         $controller->setViewHandler($viewHandler);
 
+        if ($user) {
+            $tokenMock = $this->prophesize(TokenInterface::class);
+            $tokenMock
+                ->getUser()
+                ->willReturn($user)
+            ;
+            $tokenStorageMock = $this->prophesize(TokenStorageInterface::class);
+            $tokenStorageMock
+                ->getToken()
+                ->willReturn($tokenMock)
+            ;
+            $containerMock = $this->prophesize(ContainerInterface::class);
+            $containerMock
+                ->has('security.token_storage')
+                ->willReturn(true)
+            ;
+            $containerMock
+                ->get('security.token_storage')
+                ->willReturn($tokenStorageMock)
+            ;
+            $controller->setContainer($containerMock->reveal());
+        }
+
         return $controller;
+    }
+
+    private function createCustomer(
+        ?int $id = null,
+        string $name = "test-customer-name",
+        string $surname = "test-customer-surname",
+        string $email = "customer@test.com",
+        string $address = "test-customer-address"
+    )
+    {
+        $customer = (new Customer())
+            ->setName($name)
+            ->setSurname($surname)
+            ->setEmail($email)
+            ->setAddress($address)
+        ;
+
+        if ($id) {
+            $reflectionCustomer = new \ReflectionObject($customer);
+            $reflectionId = $reflectionCustomer->getProperty("id");
+            $reflectionId->setAccessible(true);
+            $reflectionId->setValue($customer, $id);
+        }
+
+        return $customer;
     }
 
     private function createStubCustomer(
