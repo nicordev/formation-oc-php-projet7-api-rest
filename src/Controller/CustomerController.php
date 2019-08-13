@@ -99,6 +99,11 @@ class CustomerController extends AbstractFOSRestController
     {
         $this->handleViolations($violations);
 
+        if (!$newCustomer->getUser()) {
+            $user = $this->getUser();
+            $newCustomer->setUser($user);
+        }
+
         $manager->persist($newCustomer);
         $manager->flush();
 
@@ -127,6 +132,10 @@ class CustomerController extends AbstractFOSRestController
         }
         if ($modifiedCustomer->getAddress() !== null) {
             $customer->setAddress($modifiedCustomer->getAddress());
+        }
+        if (!$modifiedCustomer->getUser()) {
+            $user = $this->getUser();
+            $modifiedCustomer->setUser($user);
         }
 
         $manager->flush();
