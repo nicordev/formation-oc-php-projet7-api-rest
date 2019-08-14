@@ -153,9 +153,10 @@ class CustomerController extends AbstractFOSRestController
      */
     public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
     {
+        $id = $customer->getId();
         $manager->remove($customer);
         $manager->flush();
 
-        return $this->view(new DeleteCustomerResponse($customer), Response::HTTP_OK);
+        return $this->view("Customer {$id} deleted.", Response::HTTP_OK);
     }
 }

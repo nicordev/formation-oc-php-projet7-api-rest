@@ -191,9 +191,10 @@ class ProductController extends AbstractFOSRestController
      */
     public function deleteProductAction(Product $product, EntityManagerInterface $manager)
     {
+        $id = $product->getId();
         $manager->remove($product);
         $manager->flush();
 
-        return  $this->view(new DeleteProductResponse($product), Response::HTTP_OK);
+        return  $this->view("Product {$id} deleted.", Response::HTTP_OK);
     }
 }

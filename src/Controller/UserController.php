@@ -157,9 +157,10 @@ class UserController extends AbstractFOSRestController
      */
     public function deleteUserAction(User $user, EntityManagerInterface $manager)
     {
+        $id = $user->getId();
         $manager->remove($user);
         $manager->flush();
 
-        return $this->view(new DeleteUserResponse($user), Response::HTTP_OK);
+        return $this->view("User {$id} deleted.", Response::HTTP_OK);
     }
 }
