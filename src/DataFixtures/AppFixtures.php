@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
-use App\Helper\ObjectEditorTrait;
+use App\Helper\ObjectHelperTrait;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Faker\Factory;
@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AppFixtures extends Fixture
 {
-    use ObjectEditorTrait;
+    use ObjectHelperTrait;
 
     private $productsCount = 100;
     private $customersCount = 100;

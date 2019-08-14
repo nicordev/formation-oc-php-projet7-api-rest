@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
-use App\Response\DeleteUserResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;

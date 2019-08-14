@@ -6,8 +6,6 @@ use App\Entity\Customer;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
-use App\Repository\UserRepository;
-use App\Response\DeleteCustomerResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -64,7 +62,12 @@ class CustomerController extends AbstractFOSRestController
         int $page,
         int $quantity
     ) {
-        $paginatedCustomers = $repository->getPage($page, $quantity);
+        $paginatedCustomers = $repository->getPage(
+            $page,
+            $quantity,
+            null,
+            ["user_id" => $this->getUser()->getId()]
+        );
         $customers = $paginatedCustomers[PaginatedRepository::KEY_PAGING_ENTITIES];
 
         $paginatedRepresentation = new PaginatedRepresentation(
@@ -120,8 +123,11 @@ class CustomerController extends AbstractFOSRestController
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
      * @View()
      */
-    public function editCustomerAction(Customer $customer, Customer $modifiedCustomer, EntityManagerInterface $manager)
-    {
+    public function editCustomerAction(
+        Customer $customer,
+        Customer $modifiedCustomer,
+        EntityManagerInterface $manager
+    ) {
         if ($modifiedCustomer->getName() !== null) {
             $customer->setName($modifiedCustomer->getName());
         }
@@ -133,10 +139,6 @@ class CustomerController extends AbstractFOSRestController
         }
         if ($modifiedCustomer->getAddress() !== null) {
             $customer->setAddress($modifiedCustomer->getAddress());
-        }
-        if (!$modifiedCustomer->getUser()) {
-            $user = $this->getUser();
-            $modifiedCustomer->setUser($user);
         }
 
         $manager->flush();

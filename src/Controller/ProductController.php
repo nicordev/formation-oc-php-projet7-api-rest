@@ -7,7 +7,6 @@ use App\Entity\Product;
 use App\Exception\ResourceValidationException;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
-use App\Response\DeleteProductResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -98,7 +97,7 @@ class ProductController extends AbstractFOSRestController
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
             } else {
-                return new Response("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
+                return $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
             }
         }
 
@@ -123,7 +122,11 @@ class ProductController extends AbstractFOSRestController
             ],
             $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE],
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_PER_PAGE],
-            $paginatedProducts[ProductRepository::KEY_PAGING_PAGES_COUNT]
+            $paginatedProducts[ProductRepository::KEY_PAGING_PAGES_COUNT],
+            null,
+            null,
+            true,
+            $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
         return $this->view($paginatedRepresentation, Response::HTTP_OK);
@@ -143,8 +146,11 @@ class ProductController extends AbstractFOSRestController
      * )
      * @View()
      */
-    public function createProductAction(Product $newProduct, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
-    {
+    public function createProductAction(
+        Product $newProduct,
+        EntityManagerInterface $manager,
+        ConstraintViolationListInterface $violations
+    ) {
         $this->handleViolations($violations);
 
         $manager->persist($newProduct);
@@ -162,8 +168,11 @@ class ProductController extends AbstractFOSRestController
      * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
      * @View()
      */
-    public function editProductAction(Product $product, Product $modifiedProduct, EntityManagerInterface $manager)
-    {
+    public function editProductAction(
+        Product $product,
+        Product $modifiedProduct,
+        EntityManagerInterface $manager
+    ) {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
         }

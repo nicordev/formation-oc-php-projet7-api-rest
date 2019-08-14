@@ -38,12 +38,12 @@ class CustomerControllerTest extends TestCase
 
     public function testGetCustomersAction()
     {
-        $controller = $this->createCustomerController();
+        $controller = $this->createCustomerController(new User());
         $page = 1;
         $quantity = 5;
 
         $repository = $this->prophesize(CustomerRepository::class);
-        $repository->getPage($page, $quantity)->shouldBeCalled();
+        $repository->getPage($page, $quantity, null, ["user_id" => null])->shouldBeCalled();
 
         $response = $controller->getCustomersAction(
             $repository->reveal(),
