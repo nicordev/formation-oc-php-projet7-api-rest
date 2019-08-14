@@ -52,13 +52,19 @@ class Paginator
             $this->currentPage = $currentPage;
         }
         if ($itemsPerPage) {
+            if ($itemsPerPage < 1) {
+                $itemsPerPage = 1;
+            }
             $this->itemsPerPage = $itemsPerPage;
         }
         if ($itemsCount) {
             $this->itemsCount = $itemsCount;
         }
         if ($itemsCount && $itemsPerPage) {
-            $this->pagesCount = self::countPages($itemsCount, $itemsPerPage);
+            if ($itemsPerPage > $itemsCount) {
+                $this->itemsPerPage = $itemsCount;
+            }
+            $this->pagesCount = self::countPages($this->itemsCount, $this->itemsPerPage);
             if ($fitCurrentPageInBoundaries) {
                 $this->fitCurrentPageInBoundaries();
             }

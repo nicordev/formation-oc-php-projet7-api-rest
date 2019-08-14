@@ -78,7 +78,7 @@ class UserController extends AbstractFOSRestController
             ],
             $page,
             $quantity,
-            $paginatedUsers[UserRepository::KEY_PAGING_COUNT]
+            $paginatedUsers[UserRepository::KEY_PAGING_PAGES_COUNT]
         );
 
         return $this->view($paginatedRepresentation, Response::HTTP_OK);

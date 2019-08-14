@@ -110,22 +110,20 @@ class ProductController extends AbstractFOSRestController
             $criteria ?? null,
             $exactValue
         );
-        $products = $paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES];
-        $page = $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE];
         $paginatedRepresentation = new PaginatedRepresentation(
-            new CollectionRepresentation($products),
+            new CollectionRepresentation($paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES]),
             "product_list",
             [
                 "property" => $property,
                 "order" => $order,
                 "search" => $search,
                 "exact" => $exact,
-                "page" => $page,
+                "page" => $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE],
                 "quantity" => $quantity
             ],
-            $page,
+            $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE],
             $quantity,
-            $paginatedProducts[ProductRepository::KEY_PAGING_COUNT]
+            $paginatedProducts[ProductRepository::KEY_PAGING_PAGES_COUNT]
         );
 
         return $this->view($paginatedRepresentation, Response::HTTP_OK);

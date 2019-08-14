@@ -76,7 +76,7 @@ class CustomerController extends AbstractFOSRestController
             ],
             $page,
             $quantity,
-            $paginatedCustomers[PaginatedRepository::KEY_PAGING_COUNT]
+            $paginatedCustomers[PaginatedRepository::KEY_PAGING_PAGES_COUNT]
         );
 
         return $this->view($paginatedRepresentation, Response::HTTP_OK);

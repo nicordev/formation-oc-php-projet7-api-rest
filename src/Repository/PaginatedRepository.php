@@ -10,7 +10,9 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
 abstract class PaginatedRepository extends ServiceEntityRepository
 {
     public const KEY_PAGING_ENTITIES = "entities";
-    public const KEY_PAGING_COUNT = "pages_count";
+    public const KEY_PAGING_PAGES_COUNT = "pages_count";
+    public const KEY_PAGING_ITEMS_COUNT = "items_count";
+    public const KEY_PAGING_ITEMS_PER_PAGE = "items_per_page";
     public const KEY_PAGING_CURRENT_PAGE = "current_page";
     public const KEY_PAGING_NEXT_PAGE = "next_page";
     public const KEY_PAGING_PREVIOUS_PAGE = "previous_page";
@@ -44,7 +46,8 @@ abstract class PaginatedRepository extends ServiceEntityRepository
         ?array $criteria = null,
         bool $exactSearch = true
     ) {
-        $this->paginator->update($pageNumber, $itemsPerPage, $this->count([]));
+        $itemsCount = $this->count([]);
+        $this->paginator->update($pageNumber, $itemsPerPage, $itemsCount);
 
         if ($exactSearch) {
             $entities =  $this->findBy(
@@ -68,9 +71,15 @@ abstract class PaginatedRepository extends ServiceEntityRepository
             $entities = $queryBuilder->execute();
         }
 
+        if ($itemsPerPage > $itemsCount) {
+            $itemsPerPage = $itemsCount;
+        }
+
         return [
             self::KEY_PAGING_ENTITIES => $entities,
-            self::KEY_PAGING_COUNT => $this->paginator->pagesCount,
+            self::KEY_PAGING_PAGES_COUNT => $this->paginator->pagesCount,
+            self::KEY_PAGING_ITEMS_COUNT => $itemsCount,
+            self::KEY_PAGING_ITEMS_PER_PAGE => $itemsPerPage,
             self::KEY_PAGING_CURRENT_PAGE => $this->paginator->currentPage,
             self::KEY_PAGING_NEXT_PAGE => $this->paginator->nextPage,
             self::KEY_PAGING_PREVIOUS_PAGE => $this->paginator->previousPage

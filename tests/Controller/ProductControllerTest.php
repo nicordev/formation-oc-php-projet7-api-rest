@@ -72,7 +72,7 @@ class ProductControllerTest extends TestCase
             $exactValue
         )->willReturn([
             PaginatedRepository::KEY_PAGING_ENTITIES => $products,
-            PaginatedRepository::KEY_PAGING_COUNT => 1,
+            PaginatedRepository::KEY_PAGING_PAGES_COUNT => 1,
             PaginatedRepository::KEY_PAGING_CURRENT_PAGE => 1,
             PaginatedRepository::KEY_PAGING_NEXT_PAGE => 2,
             PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
