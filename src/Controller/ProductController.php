@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -145,6 +146,7 @@ class ProductController extends AbstractFOSRestController
      *     }
      * )
      * @View()
+     * @IsGranted("ROLE_ADMIN")
      */
     public function createProductAction(
         Product $newProduct,
@@ -167,6 +169,7 @@ class ProductController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
      * @View()
+     * @IsGranted("ROLE_ADMIN")
      */
     public function editProductAction(
         Product $product,
@@ -197,6 +200,7 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_delete"
      * )
      * @View()
+     * @IsGranted("ROLE_ADMIN")
      */
     public function deleteProductAction(Product $product, EntityManagerInterface $manager)
     {
