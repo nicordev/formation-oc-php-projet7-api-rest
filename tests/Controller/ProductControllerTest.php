@@ -7,6 +7,7 @@ use App\Controller\ProductController;
 use App\Entity\Product;
 use App\Repository\PaginatedRepository;
 use App\Repository\ProductRepository;
+use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
@@ -17,9 +18,11 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class ProductControllerTest extends TestCase
 {
+    use UnitTestHelperTrait;
+
     public function testGetProductAction()
     {
-        $product = $this->createStubProduct();
+        $product = $this->createProduct();
         $controller = $this->createProductController();
 
         $response = $controller->getProductAction($product);
@@ -96,7 +99,7 @@ class ProductControllerTest extends TestCase
 
     public function testCreateProductAction()
     {
-        $product = $this->createStubProduct();
+        $product = $this->createProduct();
         $controller = $this->createProductController();
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
@@ -118,24 +121,8 @@ class ProductControllerTest extends TestCase
 
     public function testEditProductAction()
     {
-        $product = $this->createStubProductFromProphecy();
-        $product->setModel("test-modified-model")->will(function () {
-            $this->getModel()->willReturn("test-modified-model");
-            return $this;
-        });
-        $product->setBrand("test-modified-brand")->will(function () {
-            $this->getBrand()->willReturn("test-modified-brand");
-            return $this;
-        });
-        $product->setPrice(222)->will(function () {
-            $this->getPrice()->willReturn(222);
-            return $this;
-        });
-        $product->setQuantity(2222)->will(function () {
-            $this->getQuantity()->willReturn(2222);
-            return $this;
-        });
-        $modifiedProduct = $this->createStubProduct(
+        $product = $this->createProduct();
+        $modifiedProduct = $this->createProduct(
             null,
             "test-modified-model",
             "test-modified-brand",
@@ -151,7 +138,7 @@ class ProductControllerTest extends TestCase
         $manager->expects($this->never())
             ->method("remove");
 
-        $response = $controller->editProductAction($product->reveal(), $modifiedProduct, $manager);
+        $response = $controller->editProductAction($product, $modifiedProduct, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -165,7 +152,7 @@ class ProductControllerTest extends TestCase
 
     public function testDeleteProductAction()
     {
-        $product = $this->createStubProduct();
+        $product = $this->createProduct();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
@@ -188,41 +175,23 @@ class ProductControllerTest extends TestCase
         return $controller;
     }
 
-    private function createStubProduct(
-        ?int $id = 77,
-        string $model = "test-model", 
-        string $brand = "test-brand", 
-        int $price = 888, 
-        int $quantity = 9999
-    ) {
-        $mockedProduct = $this->createMock(Product::class);
-        $mockedProduct->method("getId")
-            ->willReturn($id);
-        $mockedProduct->method("getModel")
-            ->willReturn($model);
-        $mockedProduct->method("getBrand")
-            ->willReturn($brand);
-        $mockedProduct->method("getPrice")
-            ->willReturn($price);
-        $mockedProduct->method("getQuantity")
-            ->willReturn($quantity);
-
-        return $mockedProduct;
-    }
-
-    public function createStubProductFromProphecy(
+    private function createProduct(
         ?int $id = 77,
         string $model = "test-model",
         string $brand = "test-brand",
         int $price = 888,
         int $quantity = 9999
     ) {
-        $product = $this->prophesize(Product::class);
-        $product->getId()->willReturn($id);
-        $product->getModel()->willReturn($model);
-        $product->getBrand()->willReturn($brand);
-        $product->getPrice()->willReturn($price);
-        $product->getQuantity()->willReturn($quantity);
+        $product = (new Product())
+            ->setModel($model)
+            ->setBrand($brand)
+            ->setPrice($price)
+            ->setQuantity($quantity)
+        ;
+
+        if ($id) {
+            $this->setId($product, $id);
+        }
 
         return $product;
     }

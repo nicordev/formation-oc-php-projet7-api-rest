@@ -7,6 +7,7 @@ use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Repository\CustomerRepository;
+use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
@@ -19,6 +20,8 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CustomerControllerTest extends TestCase
 {
+    use UnitTestHelperTrait;
+
     public function testGetCustomerAction()
     {
         $customer = $this->createCustomer();
@@ -182,10 +185,7 @@ class CustomerControllerTest extends TestCase
         ;
 
         if ($id) {
-            $reflectionCustomer = new \ReflectionObject($customer);
-            $reflectionId = $reflectionCustomer->getProperty("id");
-            $reflectionId->setAccessible(true);
-            $reflectionId->setValue($customer, $id);
+            $this->setId($customer, $id);
         }
 
         return $customer;

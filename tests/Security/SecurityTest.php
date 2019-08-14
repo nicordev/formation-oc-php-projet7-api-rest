@@ -3,16 +3,13 @@
 namespace App\Tests\Controller;
 
 
-use App\Entity\Product;
-use App\Response\DeleteProductResponse;
-use App\Tests\HelperTest\HelperTestTrait;
+use App\Tests\TestHelperTrait\FunctionalTestHelperTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class SecurityTest extends WebTestCase
 {
-    use HelperTestTrait;
+    use FunctionalTestHelperTrait;
 
     public function setUp()
     {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\HelperTest;
+namespace App\Tests\TestHelperTrait;
 
 
 use App\Entity\Customer;
@@ -12,7 +12,7 @@ use JMS\Serializer\SerializerBuilder;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-trait HelperTestTrait
+trait FunctionalTestHelperTrait
 {
     protected $client;
     protected $testProduct;
