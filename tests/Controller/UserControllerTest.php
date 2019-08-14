@@ -6,6 +6,7 @@ namespace App\Tests\Controller;
 use App\Controller\UserController;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
@@ -16,9 +17,11 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class UserControllerTest extends TestCase
 {
+    use UnitTestHelperTrait;
+
     public function testGetUserAction()
     {
-        $user = $this->createStubUser();
+        $user = $this->createUser();
         $controller = $this->createUserController();
 
         $response = $controller->getUserAction($user);
@@ -51,7 +54,7 @@ class UserControllerTest extends TestCase
 
     public function testCreateUserAction()
     {
-        $user = $this->createStubUser();
+        $user = $this->createUser();
         $controller = $this->createUserController();
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
@@ -75,24 +78,8 @@ class UserControllerTest extends TestCase
 
     public function testEditUserAction()
     {
-        $user = $this->createStubUserFromProphecy();
-        $user->setName("test-modified-name")->will(function () {
-            $this->getName()->willReturn("test-modified-name");
-            return $this;
-        });
-        $user->setEmail("modified.user@test.com")->will(function () {
-            $this->getEmail()->willReturn("modified.user@test.com");
-            return $this;
-        });
-        $user->setPassword("encoded-password")->will(function () {
-            $this->getPassword()->willReturn("test-modified-password");
-            return $this;
-        });
-        $user->setRoles(["ROLE_USER", "ROLE_ADMIN"])->will(function () {
-            $this->getRoles()->willReturn(["ROLE_USER", "ROLE_ADMIN"]);
-            return $this;
-        });
-        $modifiedUser = $this->createStubUser(
+        $user = $this->createUser();
+        $modifiedUser = $this->createUser(
             null,
             "test-modified-name",
             "modified.user@test.com",
@@ -114,18 +101,19 @@ class UserControllerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $response = $controller->editUserAction($user->reveal(), $modifiedUser, $manager, $encoder->reveal());
+        $response = $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseUser = $response->getData();
+        $modifiedUser->setPassword("encoded-password");
         $this->checkUser($modifiedUser, $responseUser, false);
     }
 
     public function testDeleteUserAction()
     {
-        $user = $this->createStubUser();
+        $user = $this->createUser();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($user)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
@@ -148,42 +136,23 @@ class UserControllerTest extends TestCase
         return $controller;
     }
 
-    private function createStubUser(
-        ?int $id = 77,
+    private function createUser(
+        ?int $id = null,
         string $name = "test-user-name",
         string $email = "user@test.com",
         string $password = "test-password",
         array $roles = ["ROLE_USER"]
     ) {
-        $mockedUser = $this->createMock(User::class);
-        $mockedUser->method("getId")
-            ->willReturn($id);
-        $mockedUser->method("getName")
-            ->willReturn($name);
-        $mockedUser->method("getEmail")
-            ->willReturn($email);
-        $mockedUser->method("getPassword")
-            ->willReturn($password);
-        $mockedUser->method("getRoles")
-            ->willReturn($roles);
-        $mockedUser->method("setPassword");
+        $user = (new User())
+            ->setName($name)
+            ->setEmail($email)
+            ->setPassword($password)
+            ->setRoles($roles)
+        ;
 
-        return $mockedUser;
-    }
-
-    private function createStubUserFromProphecy(
-        int $id = 77,
-        string $name = "test-user-name",
-        string $email = "user@test.com",
-        string $password = "test-password",
-        array $roles = ["ROLE_USER"]
-    ) {
-        $user = $this->prophesize(User::class);
-        $user->getId()->willReturn($id);
-        $user->getName()->willReturn($name);
-        $user->getEmail()->willReturn($email);
-        $user->getPassword()->willReturn($password);
-        $user->getRoles()->willReturn($roles);
+        if ($id) {
+            $this->setId($user, $id);
+        }
 
         return $user;
     }
