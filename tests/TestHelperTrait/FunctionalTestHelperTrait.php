@@ -10,7 +10,6 @@ use App\Helper\DatabaseHandler;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 trait FunctionalTestHelperTrait
 {

@@ -103,7 +103,6 @@ class ProductController extends AbstractFOSRestController
         }
 
         $exactValue = $exact !== "false";
-
         $paginatedProducts = $repository->getPage(
             $page,
             $quantity,
@@ -112,7 +111,7 @@ class ProductController extends AbstractFOSRestController
             $exactValue
         );
         $products = $paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES];
-
+        $page = $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE];
         $paginatedRepresentation = new PaginatedRepresentation(
             new CollectionRepresentation($products),
             "product_list",
