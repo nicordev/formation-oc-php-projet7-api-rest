@@ -50,7 +50,7 @@ class ProductControllerTest extends TestCase
         $products = (function () {
             $products = [];
 
-            for ($i = 0; $i < 5; $i++) {
+            for ($i = 0; $i < 15; $i++) {
                 $products[] = (new Product())
                     ->setModel("p$i")
                     ->setBrand("b$i")
@@ -72,7 +72,9 @@ class ProductControllerTest extends TestCase
             $exactValue
         )->willReturn([
             PaginatedRepository::KEY_PAGING_ENTITIES => $products,
-            PaginatedRepository::KEY_PAGING_PAGES_COUNT => 1,
+            PaginatedRepository::KEY_PAGING_PAGES_COUNT => 3,
+            PaginatedRepository::KEY_PAGING_ITEMS_COUNT => 15,
+            PaginatedRepository::KEY_PAGING_ITEMS_PER_PAGE => 5,
             PaginatedRepository::KEY_PAGING_CURRENT_PAGE => 1,
             PaginatedRepository::KEY_PAGING_NEXT_PAGE => 2,
             PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1

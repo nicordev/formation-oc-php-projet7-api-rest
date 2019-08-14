@@ -119,10 +119,10 @@ class ProductController extends AbstractFOSRestController
                 "search" => $search,
                 "exact" => $exact,
                 "page" => $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE],
-                "quantity" => $quantity
+                "quantity" => $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_PER_PAGE]
             ],
             $paginatedProducts[ProductRepository::KEY_PAGING_CURRENT_PAGE],
-            $quantity,
+            $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_PER_PAGE],
             $paginatedProducts[ProductRepository::KEY_PAGING_PAGES_COUNT]
         );
 
