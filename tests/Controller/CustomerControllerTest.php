@@ -21,7 +21,7 @@ class CustomerControllerTest extends TestCase
 {
     public function testGetCustomerAction()
     {
-        $customer = $this->createStubCustomer();
+        $customer = $this->createCustomer();
         $controller = $this->createCustomerController();
 
         $response = $controller->getCustomerAction($customer);
@@ -85,32 +85,16 @@ class CustomerControllerTest extends TestCase
 
     public function testEditCustomerAction()
     {
-        $customer = $this->createStubCustomerFromProphecy();
-        $customer->setName("test-modified-name")->will(function () {
-            $this->getName()->willReturn("test-modified-name");
-            return $this;
-        });
-        $customer->setSurname("test-modified-surname")->will(function () {
-            $this->getSurname()->willReturn("test-modified-surname");
-            return $this;
-        });
-        $customer->setEmail("modified.customer@test.com")->will(function () {
-            $this->getEmail()->willReturn("modified.customer@test.com");
-            return $this;
-        });
-        $customer->setAddress("test-modified-address")->will(function () {
-            $this->getAddress()->willReturn("test-modified-address");
-            return $this;
-        });
-
-        $modifiedCustomer = $this->createStubCustomer(
+        $customer = $this->createCustomer();
+        $modifiedCustomer = $this->createCustomer(
             null,
             "test-modified-name",
             "test-modified-surname",
             "modified.customer@test.com",
             "test-modified-address"
         );
-        $controller = $this->createCustomerController();
+        $user = new User();
+        $controller = $this->createCustomerController($user);
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager->expects($this->once())
             ->method("flush");
@@ -119,7 +103,7 @@ class CustomerControllerTest extends TestCase
         $manager->expects($this->never())
             ->method("remove");
 
-        $response = $controller->editCustomerAction($customer->reveal(), $modifiedCustomer, $manager);
+        $response = $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -130,7 +114,7 @@ class CustomerControllerTest extends TestCase
 
     public function testDeleteCustomerAction()
     {
-        $customer = $this->createStubCustomer();
+        $customer = $this->createCustomer();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($customer)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
@@ -203,52 +187,6 @@ class CustomerControllerTest extends TestCase
             $reflectionId->setAccessible(true);
             $reflectionId->setValue($customer, $id);
         }
-
-        return $customer;
-    }
-
-    private function createStubCustomer(
-        ?int $id = 77,
-        string $name = "test-customer-name",
-        string $surname = "test-customer-surname",
-        string $email = "customer@test.com",
-        string $address = "test-customer-address"
-    ) {
-        $mockedCustomer = $this->createMock(Customer::class);
-        $mockedCustomer->method("getId")
-            ->willReturn($id);
-        $mockedCustomer->method("getName")
-            ->willReturn($name);
-        $mockedCustomer->method("getSurname")
-            ->willReturn($surname);
-        $mockedCustomer->method("getEmail")
-            ->willReturn($email);
-        $mockedCustomer->method("getAddress")
-            ->willReturn($address);
-        $mockedCustomer->method("getUser")
-            ->willReturn(
-                (new User())->setName("user-name")
-                    ->setEmail("user@mail.com")
-                    ->setPassword("user-password")
-                    ->setRoles(["ROLE_USER"])
-            );
-
-        return $mockedCustomer;
-    }
-
-    public function createStubCustomerFromProphecy(
-        ?int $id = 77,
-        string $name = "test-customer-name",
-        string $surname = "test-customer-surname",
-        string $email = "customer@test.com",
-        string $address = "test-customer-address"
-    ) {
-        $customer = $this->prophesize(Customer::class);
-        $customer->getId()->willReturn($id);
-        $customer->getName()->willReturn($name);
-        $customer->getSurname()->willReturn($surname);
-        $customer->getEmail()->willReturn($email);
-        $customer->getAddress()->willReturn($address);
 
         return $customer;
     }
