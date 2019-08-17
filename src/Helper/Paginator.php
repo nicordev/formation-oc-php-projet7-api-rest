@@ -127,7 +127,7 @@ class Paginator
      */
     public static function calculatePreviousPageNumber(int $currentPage, int $pagesCount): int
     {
-        return self::applyBoundaries($currentPage - 1, 1,  $pagesCount);
+        return self::applyBoundaries($currentPage - 1, 1, $pagesCount);
     }
 
     /**

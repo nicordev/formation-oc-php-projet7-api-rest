@@ -107,8 +107,7 @@ class CustomerController extends AbstractFOSRestController
         Customer $newCustomer,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations
-    )
-    {
+    ) {
         $this->handleViolations($violations);
 
         $newCustomer->setUser($this->getUser());

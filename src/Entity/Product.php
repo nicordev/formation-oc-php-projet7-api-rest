@@ -53,48 +53,48 @@ class Product
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Serializer\Since("1.0")
      * @Serializer\Type("integer")
+     * @Serializer\Since("1.0")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("string")
      */
     private $model;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("string")
      */
     private $brand;
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("integer")
      */
     private $price;
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("integer")
      */
     private $quantity;
 

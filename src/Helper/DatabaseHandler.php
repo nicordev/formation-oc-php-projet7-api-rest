@@ -12,7 +12,8 @@ class DatabaseHandler
     private $pdo;
 
     private function __construct()
-    {}
+    {
+    }
 
     /**
      * Get the single instance of the database handler
@@ -25,7 +26,7 @@ class DatabaseHandler
      */
     public static function getInstance(string $host = null, string $database = null, string $user = null, string $password = "")
     {
-        if(is_null(self::$instance)) {
+        if (is_null(self::$instance)) {
             self::$instance = new DatabaseHandler();
             if ($host && $database && $user) {
                 self::$instance->connect($host, $database, $user, $password);
