@@ -31,37 +31,37 @@ class Customer
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("string")
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("string")
      */
     private $surname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("string")
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"Create"}
      * )
-     * @Serializer\Type("string")
      */
     private $address;
 

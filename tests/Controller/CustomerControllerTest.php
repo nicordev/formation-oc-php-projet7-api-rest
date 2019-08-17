@@ -7,6 +7,7 @@ use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Repository\CustomerRepository;
+use App\Security\CustomerVoter;
 use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
@@ -16,6 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CustomerControllerTest extends TestCase
@@ -25,7 +27,7 @@ class CustomerControllerTest extends TestCase
     public function testGetCustomerAction()
     {
         $customer = $this->createCustomer();
-        $controller = $this->createCustomerController();
+        $controller = $this->createCustomerController(new User(), $customer, CustomerVoter::READ);
 
         $response = $controller->getCustomerAction($customer);
         $this->assertObjectHasAttribute("statusCode", $response);
@@ -38,12 +40,13 @@ class CustomerControllerTest extends TestCase
 
     public function testGetCustomersAction()
     {
-        $controller = $this->createCustomerController(new User());
+        $user = new User();
+        $controller = $this->createCustomerController($user);
         $page = 1;
         $quantity = 5;
 
         $repository = $this->prophesize(CustomerRepository::class);
-        $repository->getPage($page, $quantity, null, ["user_id" => null])->shouldBeCalled();
+        $repository->getPage($page, $quantity, null, ["user" => $user])->shouldBeCalled();
 
         $response = $controller->getCustomersAction(
             $repository->reveal(),
@@ -97,7 +100,7 @@ class CustomerControllerTest extends TestCase
             "test-modified-address"
         );
         $user = new User();
-        $controller = $this->createCustomerController($user);
+        $controller = $this->createCustomerController($user, $customer, CustomerVoter::UPDATE);
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager->expects($this->once())
             ->method("flush");
@@ -121,7 +124,7 @@ class CustomerControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($customer)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $controller = $this->createCustomerController();
+        $controller = $this->createCustomerController(new User, $customer, CustomerVoter::DELETE);
 
         $response = $controller->deleteCustomerAction($customer, $manager->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
@@ -137,13 +140,14 @@ class CustomerControllerTest extends TestCase
      * @param User|null $user
      * @return CustomerController
      */
-    private function createCustomerController(?User $user = null)
+    private function createCustomerController(?User $user = null, $entity = null, ?string $voterAction = null)
     {
         $controller = new CustomerController();
         $viewHandler = $this->createMock(ViewHandler::class);
         $controller->setViewHandler($viewHandler);
 
         if ($user) {
+            // Token
             $tokenMock = $this->prophesize(TokenInterface::class);
             $tokenMock
                 ->getUser()
@@ -163,6 +167,24 @@ class CustomerControllerTest extends TestCase
                 ->get('security.token_storage')
                 ->willReturn($tokenStorageMock)
             ;
+
+            // Authorization
+            if ($voterAction && $entity) {
+                $authorizationCheckerMock = $this->prophesize(AuthorizationCheckerInterface::class);
+                $authorizationCheckerMock
+                    ->isGranted($voterAction, $entity)
+                    ->willReturn(true)
+                ;
+                $containerMock
+                    ->has('security.authorization_checker')
+                    ->willReturn(true)
+                ;
+                $containerMock
+                    ->get('security.authorization_checker')
+                    ->willReturn($authorizationCheckerMock)
+                ;
+            }
+
             $controller->setContainer($containerMock->reveal());
         }
 
