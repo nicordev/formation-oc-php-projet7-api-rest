@@ -6,6 +6,7 @@ use App\Entity\Customer;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
+use App\Security\CustomerVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -36,7 +37,7 @@ class CustomerController extends AbstractFOSRestController
      */
     public function getCustomerAction(Customer $customer)
     {
-        $this->denyAccessIfNotOwner($customer);
+        $this->denyAccessUnlessGranted(CustomerVoter::READ, $customer);
 
         return $this->view($customer, Response::HTTP_OK);
     }
@@ -131,7 +132,7 @@ class CustomerController extends AbstractFOSRestController
         Customer $modifiedCustomer,
         EntityManagerInterface $manager
     ) {
-        $this->denyAccessIfNotOwner($customer);
+        $this->denyAccessUnlessGranted(CustomerVoter::UPDATE, $customer);
 
         if ($modifiedCustomer->getName() !== null) {
             $customer->setName($modifiedCustomer->getName());
@@ -160,28 +161,12 @@ class CustomerController extends AbstractFOSRestController
      */
     public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
     {
-        $this->denyAccessIfNotOwner($customer);
+        $this->denyAccessUnlessGranted(CustomerVoter::DELETE, $customer);
 
         $id = $customer->getId();
         $manager->remove($customer);
         $manager->flush();
 
         return $this->view("Customer {$id} deleted.", Response::HTTP_OK);
-    }
-
-    private function denyAccessIfNotOwner(Customer $customer)
-    {
-        $userId = $this
-            ->getUser()
-            ->getId()
-        ;
-        $customerUserId = $customer
-            ->getUser()
-            ->getId()
-        ;
-
-        if ($userId !== $customerUserId) {
-            throw new NotFoundHttpException("The customer {$customer->getId()} has not been found in your list.");
-        }
     }
 }
