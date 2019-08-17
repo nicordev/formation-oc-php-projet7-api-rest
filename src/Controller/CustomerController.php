@@ -17,6 +17,7 @@ use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -35,6 +36,8 @@ class CustomerController extends AbstractFOSRestController
      */
     public function getCustomerAction(Customer $customer)
     {
+        $this->denyAccessIfNotOwner($customer);
+
         return $this->view($customer, Response::HTTP_OK);
     }
 
@@ -66,7 +69,7 @@ class CustomerController extends AbstractFOSRestController
             $page,
             $quantity,
             null,
-            ["user_id" => $this->getUser()->getId()]
+            ["user" => $this->getUser()]
         );
         $customers = $paginatedCustomers[PaginatedRepository::KEY_PAGING_ENTITIES];
 
@@ -128,6 +131,8 @@ class CustomerController extends AbstractFOSRestController
         Customer $modifiedCustomer,
         EntityManagerInterface $manager
     ) {
+        $this->denyAccessIfNotOwner($customer);
+
         if ($modifiedCustomer->getName() !== null) {
             $customer->setName($modifiedCustomer->getName());
         }
@@ -155,10 +160,28 @@ class CustomerController extends AbstractFOSRestController
      */
     public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
     {
+        $this->denyAccessIfNotOwner($customer);
+
         $id = $customer->getId();
         $manager->remove($customer);
         $manager->flush();
 
         return $this->view("Customer {$id} deleted.", Response::HTTP_OK);
+    }
+
+    private function denyAccessIfNotOwner(Customer $customer)
+    {
+        $userId = $this
+            ->getUser()
+            ->getId()
+        ;
+        $customerUserId = $customer
+            ->getUser()
+            ->getId()
+        ;
+
+        if ($userId !== $customerUserId) {
+            throw new NotFoundHttpException("The customer {$customer->getId()} has not been found in your list.");
+        }
     }
 }
