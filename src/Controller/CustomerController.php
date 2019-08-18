@@ -22,18 +22,25 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Swagger\Annotations as SWG;
 
 class CustomerController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
     /**
+     * Get the detail of a customer of your shop
+     *
      * @Get(
      *     path = "/api/customers/{id}",
      *     name = "customer_show",
      *     requirements = {"id": "\d+"}
      * )
      * @View
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the detail of a customer"
+     * )
      */
     public function getCustomerAction(Customer $customer)
     {
@@ -43,6 +50,8 @@ class CustomerController extends AbstractFOSRestController
     }
 
     /**
+     * Get the list of all the customers of your shop
+     *
      * @Get(
      *     path = "/api/customers",
      *     name = "customer_list"
@@ -60,6 +69,10 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the list of all customers of the current user"
+     * )
      */
     public function getCustomersAction(
         CustomerRepository $repository,
@@ -90,6 +103,8 @@ class CustomerController extends AbstractFOSRestController
     }
 
     /**
+     * Add a customer to your list of customers
+     *
      * @Post(
      *     "/api/customers",
      *     name = "customer_create"
@@ -102,6 +117,10 @@ class CustomerController extends AbstractFOSRestController
      *     }
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 201,
+     *     description = "Return the list of all customers of the current user"
+     * )
      */
     public function createCustomerAction(
         Customer $newCustomer,
@@ -118,6 +137,8 @@ class CustomerController extends AbstractFOSRestController
     }
 
     /**
+     * Modify the information on one of your customers
+     *
      * @Post(
      *     "/api/customers/{id}",
      *     name = "customer_edit",
@@ -125,6 +146,10 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
      * @View()
+     * @SWG\Response(
+     *     response = 202,
+     *     description = "Update a customer of the current user"
+     * )
      */
     public function editCustomerAction(
         Customer $customer,
@@ -152,11 +177,17 @@ class CustomerController extends AbstractFOSRestController
     }
 
     /**
+     * Delete a customer from your list of customers
+     *
      * @Delete(
      *     "/api/customers/{id}",
      *     name = "customer_delete"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Delete a customer of the current user"
+     * )
      */
     public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
     {

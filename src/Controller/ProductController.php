@@ -22,12 +22,15 @@ use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Swagger\Annotations as SWG;
 
 class ProductController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
     /**
+     * Consult the detail of a particular phone
+     *
      * @Get(
      *     path = "/api/products/{id}",
      *     name = "product_show_id",
@@ -38,6 +41,10 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_show_model"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the detail of a product"
+     * )
      */
     public function getProductAction(Product $product)
     {
@@ -45,6 +52,8 @@ class ProductController extends AbstractFOSRestController
     }
 
     /**
+     * Consult the list of all phones
+     *
      * @Get(
      *     path = "/api/products",
      *     name = "product_list"
@@ -84,6 +93,10 @@ class ProductController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the list of all products available"
+     * )
      */
     public function getProductsAction(
         ProductRepository $repository,
@@ -134,6 +147,8 @@ class ProductController extends AbstractFOSRestController
     }
 
     /**
+     * Add a phone (admin only)
+     *
      * @Post(
      *     "/api/products",
      *     name = "product_create"
@@ -147,6 +162,10 @@ class ProductController extends AbstractFOSRestController
      * )
      * @View()
      * @IsGranted("ROLE_ADMIN")
+     * @SWG\Response(
+     *     response = 201,
+     *     description = "Create a product (admin only)"
+     * )
      */
     public function createProductAction(
         Product $newProduct,
@@ -162,6 +181,8 @@ class ProductController extends AbstractFOSRestController
     }
 
     /**
+     * Modify a phone (admin only)
+     *
      * @Post(
      *     "/api/products/{id}",
      *     name = "product_edit",
@@ -170,6 +191,10 @@ class ProductController extends AbstractFOSRestController
      * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
      * @View()
      * @IsGranted("ROLE_ADMIN")
+     * @SWG\Response(
+     *     response = 202,
+     *     description = "Update a product (admin only)"
+     * )
      */
     public function editProductAction(
         Product $product,
@@ -195,12 +220,18 @@ class ProductController extends AbstractFOSRestController
     }
 
     /**
+     * Delete a phone (admin only)
+     *
      * @Delete(
      *     "/api/products/{id}",
      *     name = "product_delete"
      * )
      * @View()
      * @IsGranted("ROLE_ADMIN")
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Delete a product (admin only)"
+     * )
      */
     public function deleteProductAction(Product $product, EntityManagerInterface $manager)
     {

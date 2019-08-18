@@ -19,12 +19,15 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Swagger\Annotations as SWG;
 
 class UserController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
     /**
+     * Get your profile
+     *
      * @Get(
      *     path = "/api/users/{id}",
      *     name = "user_show_id",
