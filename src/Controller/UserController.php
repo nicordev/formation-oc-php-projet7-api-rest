@@ -28,6 +28,8 @@ class UserController extends AbstractFOSRestController
     /**
      * Get your profile
      *
+     * You must use your user id.
+     *
      * @Get(
      *     path = "/api/users/{id}",
      *     name = "user_show_id",
@@ -38,6 +40,10 @@ class UserController extends AbstractFOSRestController
      *     name = "user_show_name"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the detail of a user"
+     * )
      */
     public function getUserAction(User $user)
     {
@@ -45,6 +51,8 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
+     * Get the list of all registered users (admin only)
+     *
      * @Get(
      *     path = "/api/users",
      *     name = "user_list"
@@ -62,6 +70,10 @@ class UserController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the list of all users (admin only)"
+     * )
      */
     public function getUsersAction(
         UserRepository $repository,
@@ -87,6 +99,8 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
+     * Create a user (admin only)
+     *
      * @Post(
      *     "/api/users",
      *     name = "user_create"
@@ -99,6 +113,10 @@ class UserController extends AbstractFOSRestController
      *     }
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 201,
+     *     description = "Create a user (admin only)"
+     * )
      */
     public function createUserAction(
         User $newUser,
@@ -117,6 +135,10 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
+     * Modify your user account
+     *
+     * You must use your user id
+     *
      * @Post(
      *     "/api/users/{id}",
      *     name = "user_edit",
@@ -124,6 +146,10 @@ class UserController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
      * @View()
+     * @SWG\Response(
+     *     response = 202,
+     *     description = "Update the current user"
+     * )
      */
     public function editUserAction(
         User $user,
@@ -151,11 +177,19 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
+     * Delete your account
+     *
+     * You must use your user id
+     *
      * @Delete(
      *     "/api/users/{id}",
      *     name = "user_delete"
      * )
      * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Delete the current user"
+     * )
      */
     public function deleteUserAction(User $user, EntityManagerInterface $manager)
     {
