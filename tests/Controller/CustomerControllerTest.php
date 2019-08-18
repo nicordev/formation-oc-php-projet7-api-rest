@@ -147,45 +147,7 @@ class CustomerControllerTest extends TestCase
         $controller->setViewHandler($viewHandler);
 
         if ($user) {
-            // Token
-            $tokenMock = $this->prophesize(TokenInterface::class);
-            $tokenMock
-                ->getUser()
-                ->willReturn($user)
-            ;
-            $tokenStorageMock = $this->prophesize(TokenStorageInterface::class);
-            $tokenStorageMock
-                ->getToken()
-                ->willReturn($tokenMock)
-            ;
-            $containerMock = $this->prophesize(ContainerInterface::class);
-            $containerMock
-                ->has('security.token_storage')
-                ->willReturn(true)
-            ;
-            $containerMock
-                ->get('security.token_storage')
-                ->willReturn($tokenStorageMock)
-            ;
-
-            // Authorization
-            if ($voterAction && $entity) {
-                $authorizationCheckerMock = $this->prophesize(AuthorizationCheckerInterface::class);
-                $authorizationCheckerMock
-                    ->isGranted($voterAction, $entity)
-                    ->willReturn(true)
-                ;
-                $containerMock
-                    ->has('security.authorization_checker')
-                    ->willReturn(true)
-                ;
-                $containerMock
-                    ->get('security.authorization_checker')
-                    ->willReturn($authorizationCheckerMock)
-                ;
-            }
-
-            $controller->setContainer($containerMock->reveal());
+            $controller->setContainer($this->createSecurityContainerMock($user, $entity, $voterAction)->reveal());
         }
 
         return $controller;

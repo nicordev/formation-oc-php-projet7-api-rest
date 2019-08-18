@@ -6,6 +6,7 @@ namespace App\Tests\Controller;
 use App\Controller\UserController;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\UserVoter;
 use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
@@ -22,7 +23,7 @@ class UserControllerTest extends TestCase
     public function testGetUserAction()
     {
         $user = $this->createUser();
-        $controller = $this->createUserController();
+        $controller = $this->createUserController($user, $user, UserVoter::READ);
 
         $response = $controller->getUserAction($user);
         $this->assertObjectHasAttribute("statusCode", $response);
@@ -35,7 +36,8 @@ class UserControllerTest extends TestCase
 
     public function testGetUsersAction()
     {
-        $controller = $this->createUserController();
+        $user = $this->createUser();
+        $controller = $this->createUserController($user, null, UserVoter::LIST);
         $page = 1;
         $quantity = 5;
 
@@ -127,11 +129,15 @@ class UserControllerTest extends TestCase
 
     // Private
 
-    private function createUserController()
+    private function createUserController(?User $user = null, $entity = null, ?string $voterAction = null)
     {
         $viewHandler = $this->createMock(ViewHandler::class);
         $controller = new UserController();
         $controller->setViewHandler($viewHandler);
+
+        if ($user) {
+            $controller->setContainer($this->createSecurityContainerMock($user, $entity, $voterAction)->reveal());
+        }
 
         return $controller;
     }
