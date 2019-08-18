@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
+use App\Security\UserVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -47,6 +48,8 @@ class UserController extends AbstractFOSRestController
      */
     public function getUserAction(User $user)
     {
+        $this->denyAccessUnlessGranted(UserVoter::READ, $user);
+
         return $this->view($user, Response::HTTP_OK);
     }
 
@@ -80,6 +83,8 @@ class UserController extends AbstractFOSRestController
         int $page = 1,
         int $quantity = 5
     ) {
+        $this->denyAccessUnlessGranted(UserVoter::LIST);
+
         $paginatedUsers = $repository->getPage($page, $quantity);
         $users = $paginatedUsers[UserRepository::KEY_PAGING_ENTITIES];
 
