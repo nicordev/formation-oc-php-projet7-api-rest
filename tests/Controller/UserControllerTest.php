@@ -57,7 +57,7 @@ class UserControllerTest extends TestCase
     public function testCreateUserAction()
     {
         $user = $this->createUser();
-        $controller = $this->createUserController();
+        $controller = $this->createUserController($user, null, UserVoter::CREATE);
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($user)->shouldBeCalled();
@@ -88,7 +88,7 @@ class UserControllerTest extends TestCase
             "test-modified-password",
             ["ROLE_USER", "ROLE_ADMIN"]
         );
-        $controller = $this->createUserController();
+        $controller = $this->createUserController($user, $user, UserVoter::UPDATE);
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager->expects($this->once())
             ->method("flush");
@@ -119,7 +119,7 @@ class UserControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($user)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $controller = $this->createUserController();
+        $controller = $this->createUserController($user, $user, UserVoter::DELETE);
 
         $response = $controller->deleteUserAction($user, $manager->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);

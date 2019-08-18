@@ -71,8 +71,8 @@ class UserVoter extends Voter
         }
 
         if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE]) && $requestedUser instanceof User) {
-            // The current user must be the same as the requested user
-            if ($currentUser->getId() === $requestedUser->getId()) {
+            // The current user must be the same as the requested user or must be an admin
+            if ($currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
                 return true;
             }
 

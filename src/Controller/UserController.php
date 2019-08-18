@@ -27,9 +27,9 @@ class UserController extends AbstractFOSRestController
     use ViolationsTrait;
 
     /**
-     * Get your profile
+     * Get the profile of a user.
      *
-     * You must use your user id.
+     * If you are not admin, you'll have access to your profile only.
      *
      * @Get(
      *     path = "/api/users/{id}",
@@ -129,6 +129,8 @@ class UserController extends AbstractFOSRestController
         ConstraintViolationListInterface $violations,
         UserPasswordEncoderInterface $encoder
     ) {
+        $this->denyAccessUnlessGranted(UserVoter::CREATE);
+
         $this->handleViolations($violations);
 
         $encoded = $encoder->encodePassword($newUser, $newUser->getPassword());
@@ -140,9 +142,9 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
-     * Modify your user account
+     * Modify a user
      *
-     * You must use your user id
+     * If you are not admin, you'll be able to modify your profile only.
      *
      * @Post(
      *     "/api/users/{id}",
@@ -162,6 +164,8 @@ class UserController extends AbstractFOSRestController
         EntityManagerInterface $manager,
         UserPasswordEncoderInterface $encoder
     ) {
+        $this->denyAccessUnlessGranted(UserVoter::UPDATE, $user);
+
         if ($modifiedUser->getName() !== null) {
             $user->setName($modifiedUser->getName());
         }
@@ -182,9 +186,9 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
-     * Delete your account
+     * Delete a user account
      *
-     * You must use your user id
+     * If you are not admin, you'll be able to delete your profile only.
      *
      * @Delete(
      *     "/api/users/{id}",
@@ -198,6 +202,8 @@ class UserController extends AbstractFOSRestController
      */
     public function deleteUserAction(User $user, EntityManagerInterface $manager)
     {
+        $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
+
         $id = $user->getId();
         $manager->remove($user);
         $manager->flush();
