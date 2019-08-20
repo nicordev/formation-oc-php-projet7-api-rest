@@ -14,6 +14,9 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        documentation:
+            pattern: ^/api/(doc|doc\.json)$ # will match "/api/doc" and "/api/doc.json"
+            anonymous: true
         login:
             pattern:  ^/api/login
             stateless: true
