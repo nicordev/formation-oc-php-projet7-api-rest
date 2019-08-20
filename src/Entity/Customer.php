@@ -33,7 +33,7 @@ class Customer
      * @ORM\Column(type="string", length=255)
      * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $name;
@@ -42,7 +42,7 @@ class Customer
      * @ORM\Column(type="string", length=255)
      * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $surname;
@@ -51,7 +51,7 @@ class Customer
      * @ORM\Column(type="string", length=255)
      * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $email;
@@ -60,7 +60,7 @@ class Customer
      * @ORM\Column(type="string", length=255)
      * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $address;

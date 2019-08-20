@@ -113,7 +113,7 @@ class CustomerController extends AbstractFOSRestController
      *     "newCustomer",
      *     converter="fos_rest.request_body",
      *     options = {
-     *          "validator" = {"groups" = "Create"}
+     *          "validator" = {"groups" = "customer_create"}
      *     }
      * )
      * @View()

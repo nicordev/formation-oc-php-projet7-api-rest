@@ -40,7 +40,7 @@ class ProductController extends AbstractFOSRestController
      *     path = "/api/products/{model}",
      *     name = "product_show_model"
      * )
-     * @View()
+     * @View(serializerGroups = {"product_detail"})
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a product"
@@ -92,7 +92,7 @@ class ProductController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
-     * @View()
+     * @View(serializerGroups = {"product_list"})
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
@@ -157,7 +157,7 @@ class ProductController extends AbstractFOSRestController
      *     "newProduct",
      *     converter="fos_rest.request_body",
      *     options = {
-     *          "validator" = {"groups" = "Create"}
+     *          "validator" = {"groups" = "product_create"}
      *     }
      * )
      * @View()

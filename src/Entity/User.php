@@ -26,7 +26,7 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string", length=180, unique=true)
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"user_create"}
      * )
      * @Serializer\Type("string")
      */
@@ -42,7 +42,7 @@ class User implements UserInterface
      * @var string The hashed password
      * @ORM\Column(type="string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"user_create"}
      * )
      * @Serializer\Type("string")
      */
@@ -51,7 +51,7 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"user_create"}
      * )
      * @Serializer\Type("string")
      */

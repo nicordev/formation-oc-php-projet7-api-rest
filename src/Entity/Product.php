@@ -55,6 +55,10 @@ class Product
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $id;
 
@@ -63,8 +67,12 @@ class Product
      * @Serializer\Type("string")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $model;
 
@@ -73,8 +81,12 @@ class Product
      * @Serializer\Type("string")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $brand;
 
@@ -83,8 +95,12 @@ class Product
      * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $price;
 
@@ -93,13 +109,18 @@ class Product
      * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $quantity;
 
     /**
      * @ORM\Column(type="json")
+     * @Serializer\Groups({"product_detail"})
      */
     private $detail = [];
 

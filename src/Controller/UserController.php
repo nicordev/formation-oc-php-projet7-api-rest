@@ -114,7 +114,7 @@ class UserController extends AbstractFOSRestController
      *     "newUser",
      *     converter="fos_rest.request_body",
      *     options = {
-     *          "validator" = {"groups" = "Create"}
+     *          "validator" = {"groups" = "user_create"}
      *     }
      * )
      * @View()
