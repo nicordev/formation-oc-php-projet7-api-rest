@@ -2,10 +2,12 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Customer;
 use App\Entity\Product;
 use App\Helper\ObjectEditorTrait;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
+use Faker\Factory;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AppFixtures extends Fixture
@@ -13,6 +15,8 @@ class AppFixtures extends Fixture
     use ObjectEditorTrait;
 
     private $productsCount = 100;
+    private $customersCount = 100;
+    private $manager;
     /**
      * @var ParameterBagInterface
      */
@@ -25,13 +29,42 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
+        $this->manager = $manager;
+        $this->loadProducts();
+        $this->loadCustomers();
+    }
+
+    private function loadCustomers()
+    {
+        $faker = Factory::create("fr_FR");
+
+        for ($i = 0; $i < $this->customersCount; $i++) {
+            $customer = new Customer();
+            $customer->setName($faker->firstName);
+            $customer->setSurname($faker->lastName);
+            $customer->setEmail($faker->email);
+            $customer->setAddress($faker->address);
+
+            $this->manager->persist($customer);
+        }
+
+        $this->manager->flush();
+    }
+
+    /**
+     * Generate fake products and load them in the database
+     *
+     * @throws \ReflectionException
+     */
+    private function loadProducts()
+    {
         $products = $this->getProductsFromDemo();
 
         foreach ($products as $product) {
-            $manager->persist($product);
+            $this->manager->persist($product);
         }
 
-        $manager->flush();
+        $this->manager->flush();
     }
 
     /**

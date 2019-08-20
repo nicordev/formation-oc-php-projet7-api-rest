@@ -5,8 +5,11 @@ namespace App\Controller;
 use App\Entity\Customer;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
+use App\Repository\PaginatedRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -40,11 +43,40 @@ class CustomerController extends AbstractFOSRestController
      *     path = "/customers",
      *     name = "customer_list"
      * )
+     * @Rest\QueryParam(
+     *     name = "page",
+     *     requirements = "\d+",
+     *     default = 1,
+     *     description = "Page number"
+     * )
+     * @Rest\QueryParam(
+     *     name = "quantity",
+     *     requirements = "\d+",
+     *     default = 5,
+     *     description = "Number of items per page"
+     * )
      */
-    public function getCustomersAction(CustomerRepository $repository)
-    {
-        $customers = $repository->findAll();
-        $view = $this->view($customers, Response::HTTP_OK);
+    public function getCustomersAction(
+        CustomerRepository $repository,
+        int $page,
+        int $quantity
+    ) {
+        $paginatedCustomers = $repository->getPage($page, $quantity);
+        $customers = $paginatedCustomers[PaginatedRepository::KEY_PAGING_ENTITIES];
+
+        $paginatedRepresentation = new PaginatedRepresentation(
+            new CollectionRepresentation($customers),
+            "product_list",
+            [
+                "page" => $page,
+                "quantity" => $quantity
+            ],
+            $page,
+            $quantity,
+            $paginatedCustomers[PaginatedRepository::KEY_PAGING_COUNT]
+        );
+
+        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
 
         return $this->handleView($view);
     }
