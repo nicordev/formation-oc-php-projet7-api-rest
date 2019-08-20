@@ -154,7 +154,7 @@ class AppFixtures extends Fixture
     private function generateProduct($datum)
     {
         $product = new Product();
-
+        $datum->detail = (array) $datum->detail;
         $this->updateProperties($product, $datum);
         $product->setModel(str_replace(" ", "-", $product->getModel()));
         $product->setQuantity(mt_rand(10, 10000));

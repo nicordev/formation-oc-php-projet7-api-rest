@@ -98,6 +98,11 @@ class Product
      */
     private $quantity;
 
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $detail = [];
+
     public function getId(): ?int
     {
         return $this->id;
@@ -147,6 +152,18 @@ class Product
     public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
+
+        return $this;
+    }
+
+    public function getDetail(): ?array
+    {
+        return $this->detail;
+    }
+
+    public function setDetail(array $detail): self
+    {
+        $this->detail = $detail;
 
         return $this;
     }
