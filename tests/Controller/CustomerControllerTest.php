@@ -7,11 +7,14 @@ use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Repository\CustomerRepository;
+use App\Repository\PaginatedRepository;
 use App\Security\CustomerVoter;
 use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,8 +48,41 @@ class CustomerControllerTest extends TestCase
         $page = 1;
         $quantity = 5;
 
+        // Fake customers
+        $customersCount = 15;
+        $customers = (function () use ($customersCount) {
+            $customers = [];
+
+            for ($i = 0; $i < $customersCount; $i++) {
+                $customers[] = (new Customer())
+                    ->setName("n$i")
+                    ->setSurname("s$i")
+                    ->setEmail("e$i")
+                    ->setAddress("a$i")
+                    ->setUser((new User())->setName("u$i"))
+                ;
+            }
+
+            return $customers;
+        })();
+
         $repository = $this->prophesize(CustomerRepository::class);
-        $repository->getPage($page, $quantity, null, ["user" => $user])->shouldBeCalled();
+        $repository->getPage(
+                $page,
+                $quantity,
+                null,
+                ["user" => $user]
+            )
+            ->willReturn([
+                PaginatedRepository::KEY_PAGING_ENTITIES => $customers,
+                PaginatedRepository::KEY_PAGING_PAGES_COUNT => 3,
+                PaginatedRepository::KEY_PAGING_ITEMS_COUNT => $customersCount,
+                PaginatedRepository::KEY_PAGING_ITEMS_PER_PAGE => 5,
+                PaginatedRepository::KEY_PAGING_CURRENT_PAGE => 1,
+                PaginatedRepository::KEY_PAGING_NEXT_PAGE => 2,
+                PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
+            ])
+            ->shouldBeCalled();
 
         $response = $controller->getCustomersAction(
             $repository->reveal(),
@@ -56,6 +92,23 @@ class CustomerControllerTest extends TestCase
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
+
+        $responseContent = $response->getData();
+        $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
+        $inline = $responseContent->getInline();
+        $this->assertInstanceOf(CollectionRepresentation::class, $inline);
+        $resources = $inline->getResources();
+        $this->assertEquals($customersCount, count($resources));
+
+        for ($i = 0; $i < $customersCount; $i++) {
+            $this->assertInstanceOf(Customer::class, $resources[$i]);
+            $this->assertEquals("n$i", $resources[$i]->getName());
+            $this->assertEquals("s$i", $resources[$i]->getSurname());
+            $this->assertEquals("e$i", $resources[$i]->getEmail());
+            $this->assertEquals("a$i", $resources[$i]->getAddress());
+            $this->assertInstanceOf(User::class, $resources[$i]->getUser());
+            $this->assertEquals("u$i", $resources[$i]->getUser()->getName());
+        }
     }
 
     public function testCreateCustomerAction()

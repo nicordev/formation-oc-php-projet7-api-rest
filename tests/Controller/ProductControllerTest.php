@@ -48,6 +48,8 @@ class ProductControllerTest extends TestCase
         $exact = "true";
         $page = 1;
         $quantity = 5;
+
+        // Fake products
         $productsCount = 15;
         $products = (function () use ($productsCount) {
             $products = [];
@@ -72,15 +74,17 @@ class ProductControllerTest extends TestCase
             [$property => strtoupper($order)],
             null,
             $exactValue
-        )->willReturn([
+        )
+        ->willReturn([
             PaginatedRepository::KEY_PAGING_ENTITIES => $products,
             PaginatedRepository::KEY_PAGING_PAGES_COUNT => 3,
-            PaginatedRepository::KEY_PAGING_ITEMS_COUNT => 15,
+            PaginatedRepository::KEY_PAGING_ITEMS_COUNT => $productsCount,
             PaginatedRepository::KEY_PAGING_ITEMS_PER_PAGE => 5,
             PaginatedRepository::KEY_PAGING_CURRENT_PAGE => 1,
             PaginatedRepository::KEY_PAGING_NEXT_PAGE => 2,
             PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
-        ])->shouldBeCalled();
+        ])
+        ->shouldBeCalled();
 
         $response = $controller->getProductsAction(
             $repository->reveal(),
