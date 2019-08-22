@@ -4,13 +4,17 @@ namespace App\Tests\Controller;
 
 
 use App\Controller\UserController;
+use App\Entity\Customer;
 use App\Entity\User;
+use App\Repository\PaginatedRepository;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
 use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -41,8 +45,36 @@ class UserControllerTest extends TestCase
         $page = 1;
         $quantity = 5;
 
+        // Fake users
+        $usersCount = 15;
+        $users = (function () use ($usersCount) {
+            $users = [];
+
+            for ($i = 0; $i < $usersCount; $i++) {
+                $users[] = (new User())
+                    ->setName("n$i")
+                    ->setRoles(["ROLE_TEST"])
+                    ->setEmail("e$i")
+                    ->setPassword("p$i")
+                    ->addCustomer((new Customer)->setName("c$i"))
+                ;
+            }
+
+            return $users;
+        })();
+
         $repository = $this->prophesize(UserRepository::class);
-        $repository->getPage($page, $quantity)->shouldBeCalled();
+        $repository->getPage($page, $quantity)
+            ->willReturn([
+                PaginatedRepository::KEY_PAGING_ENTITIES => $users,
+                PaginatedRepository::KEY_PAGING_PAGES_COUNT => 3,
+                PaginatedRepository::KEY_PAGING_ITEMS_COUNT => $usersCount,
+                PaginatedRepository::KEY_PAGING_ITEMS_PER_PAGE => 5,
+                PaginatedRepository::KEY_PAGING_CURRENT_PAGE => 1,
+                PaginatedRepository::KEY_PAGING_NEXT_PAGE => 2,
+                PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
+            ])
+            ->shouldBeCalled();
 
         $response = $controller->getUsersAction(
             $repository->reveal(),
@@ -52,6 +84,23 @@ class UserControllerTest extends TestCase
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
+
+        $responseContent = $response->getData();
+        $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
+        $inline = $responseContent->getInline();
+        $this->assertInstanceOf(CollectionRepresentation::class, $inline);
+        $resources = $inline->getResources();
+        $this->assertEquals($usersCount, count($resources));
+
+        for ($i = 0; $i < $usersCount; $i++) {
+            $this->assertInstanceOf(User::class, $resources[$i]);
+            $this->assertEquals("n$i", $resources[$i]->getName());
+            $this->assertEquals("e$i", $resources[$i]->getEmail());
+            $this->assertEquals("p$i", $resources[$i]->getPassword());
+            $this->assertEquals(["ROLE_TEST", "ROLE_USER"], $resources[$i]->getRoles());
+            $this->assertInstanceOf(Customer::class, $resources[$i]->getCustomers()[0]);
+            $this->assertEquals("c$i", $resources[$i]->getCustomers()[0]->getName());
+        }
     }
 
     public function testCreateUserAction()
