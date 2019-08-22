@@ -11,6 +11,7 @@ use App\Tests\TestHelperTrait\UnitTestHelperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
+use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,10 +48,11 @@ class ProductControllerTest extends TestCase
         $exact = "true";
         $page = 1;
         $quantity = 5;
-        $products = (function () {
+        $productsCount = 15;
+        $products = (function () use ($productsCount) {
             $products = [];
 
-            for ($i = 0; $i < 15; $i++) {
+            for ($i = 0; $i < $productsCount; $i++) {
                 $products[] = (new Product())
                     ->setModel("p$i")
                     ->setBrand("b$i")
@@ -95,9 +97,18 @@ class ProductControllerTest extends TestCase
 
         $responseContent = $response->getData();
         $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
-        /*
-         * TODO: check response content
-         */
+        $inline = $responseContent->getInline();
+        $this->assertInstanceOf(CollectionRepresentation::class, $inline);
+        $resources = $inline->getResources();
+        $this->assertEquals($productsCount, count($resources));
+
+        for ($i = 0; $i < $productsCount; $i++) {
+            $this->assertInstanceOf(Product::class, $resources[$i]);
+            $this->assertEquals("p$i", $resources[$i]->getModel());
+            $this->assertEquals("b$i", $resources[$i]->getBrand());
+            $this->assertEquals($i * 10, $resources[$i]->getPrice());
+            $this->assertEquals($i * 10, $resources[$i]->getQuantity());
+        }
     }
 
     public function testCreateProductAction()
