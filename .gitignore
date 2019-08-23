@@ -3,6 +3,7 @@ bin/.phpunit/
 .testing_stuff/
 php.ini
 server_start
+cov/
 
 ###> symfony/framework-bundle ###
 /.env.local

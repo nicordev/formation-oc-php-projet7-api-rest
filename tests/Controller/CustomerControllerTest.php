@@ -16,11 +16,8 @@ use FOS\RestBundle\View\ViewHandler;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CustomerControllerTest extends TestCase
@@ -39,6 +36,20 @@ class CustomerControllerTest extends TestCase
 
         $responseCustomer = $response->getData();
         $this->checkCustomer($customer, $responseCustomer);
+    }
+
+    public function testGetCustomerAction_accessDenied()
+    {
+        $customer = $this->createCustomer();
+        $controller = $this->createCustomerController(
+            new User(),
+            $customer,
+            CustomerVoter::READ,
+            false
+        );
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->getCustomerAction($customer);
     }
 
     public function testGetCustomersAction()
@@ -153,7 +164,12 @@ class CustomerControllerTest extends TestCase
             "test-modified-address"
         );
         $user = new User();
-        $controller = $this->createCustomerController($user, $customer, CustomerVoter::UPDATE);
+        $controller = $this->createCustomerController(
+            $user,
+            $customer,
+            CustomerVoter::UPDATE,
+            true
+        );
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager->expects($this->once())
             ->method("flush");
@@ -171,18 +187,69 @@ class CustomerControllerTest extends TestCase
         $this->checkCustomer($modifiedCustomer, $responseCustomer, false);
     }
 
+    public function testEditCustomerAction_accessDenied()
+    {
+        $customer = $this->createCustomer();
+        $modifiedCustomer = $this->createCustomer(
+            null,
+            "test-modified-name",
+            "test-modified-surname",
+            "modified.customer@test.com",
+            "test-modified-address"
+        );
+        $user = new User();
+        $controller = $this->createCustomerController(
+            $user,
+            $customer,
+            CustomerVoter::UPDATE,
+            false
+        );
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->expects($this->never())
+            ->method("flush");
+        $manager->expects($this->never())
+            ->method("persist");
+        $manager->expects($this->never())
+            ->method("remove");
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
+    }
+
     public function testDeleteCustomerAction()
     {
         $customer = $this->createCustomer();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($customer)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $controller = $this->createCustomerController(new User, $customer, CustomerVoter::DELETE);
+        $controller = $this->createCustomerController(
+            new User,
+            $customer,
+            CustomerVoter::DELETE,
+            true
+        );
 
         $response = $controller->deleteCustomerAction($customer, $manager->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
+    }
+
+    public function testDeleteCustomerAction_accessDenied()
+    {
+        $customer = $this->createCustomer();
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->remove($customer)->shouldNotBeCalled();
+        $manager->flush()->shouldNotBeCalled();
+        $controller = $this->createCustomerController(
+            new User,
+            $customer,
+            CustomerVoter::DELETE,
+            false
+        );
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->deleteCustomerAction($customer, $manager->reveal());
     }
 
     // Private
@@ -191,16 +258,30 @@ class CustomerControllerTest extends TestCase
      * Create a CustomerController instance with a ViewHandler. Optionally: a user to use Controller::getUser()
      *
      * @param User|null $user
+     * @param null $entity
+     * @param string|null $voterAction
+     * @param bool $isGranted
      * @return CustomerController
      */
-    private function createCustomerController(?User $user = null, $entity = null, ?string $voterAction = null)
-    {
+    private function createCustomerController(
+        ?User $user = null,
+        $entity = null,
+        ?string $voterAction = null,
+        bool $isGranted = true
+    ) {
         $controller = new CustomerController();
         $viewHandler = $this->createMock(ViewHandler::class);
         $controller->setViewHandler($viewHandler);
 
         if ($user) {
-            $controller->setContainer($this->createSecurityContainerMock($user, $entity, $voterAction)->reveal());
+            $controller->setContainer(
+                $this->createSecurityContainerMock(
+                    $user,
+                    $entity,
+                    $voterAction,
+                    $isGranted
+                )->reveal()
+            );
         }
 
         return $controller;

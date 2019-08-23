@@ -19,8 +19,12 @@ trait UnitTestHelperTrait
         $reflectionId->setValue($entity, $id);
     }
 
-    private function createSecurityContainerMock(User $user, $entity = null, ?string $voterAction = null)
-    {
+    private function createSecurityContainerMock(
+        User $user,
+        $entity = null,
+        ?string $voterAction = null,
+        bool $isGranted = true
+    ) {
         // Token
         $tokenMock = $this->prophesize(TokenInterface::class);
         $tokenMock
@@ -47,7 +51,7 @@ trait UnitTestHelperTrait
             $authorizationCheckerMock = $this->prophesize(AuthorizationCheckerInterface::class);
             $authorizationCheckerMock
                 ->isGranted($voterAction, $entity)
-                ->willReturn(true)
+                ->willReturn($isGranted)
             ;
             $containerMock
                 ->has('security.authorization_checker')
