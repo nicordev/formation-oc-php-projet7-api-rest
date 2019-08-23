@@ -18,6 +18,7 @@ use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class UserControllerTest extends TestCase
@@ -27,7 +28,12 @@ class UserControllerTest extends TestCase
     public function testGetUserAction()
     {
         $user = $this->createUser();
-        $controller = $this->createUserController($user, $user, UserVoter::READ);
+        $controller = $this->createUserController(
+            $user,
+            $user,
+            UserVoter::READ,
+            true
+        );
 
         $response = $controller->getUserAction($user);
         $this->assertObjectHasAttribute("statusCode", $response);
@@ -38,10 +44,29 @@ class UserControllerTest extends TestCase
         $this->checkUser($user, $responseUser);
     }
 
+    public function testGetUserAction_accessDenied()
+    {
+        $user = $this->createUser();
+        $controller = $this->createUserController(
+            $user,
+            $user,
+            UserVoter::READ,
+            false
+        );
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->getUserAction($user);
+    }
+
     public function testGetUsersAction()
     {
         $user = $this->createUser();
-        $controller = $this->createUserController($user, null, UserVoter::LIST);
+        $controller = $this->createUserController(
+            $user,
+            null,
+            UserVoter::LIST,
+            true
+        );
         $page = 1;
         $quantity = 5;
 
@@ -103,10 +128,38 @@ class UserControllerTest extends TestCase
         }
     }
 
+    public function testGetUsersAction_accessDenied()
+    {
+        $user = $this->createUser();
+        $controller = $this->createUserController(
+            $user,
+            null,
+            UserVoter::LIST,
+            false
+        );
+        $page = 1;
+        $quantity = 5;
+        $repository = $this->prophesize(UserRepository::class);
+        $repository->getPage($page, $quantity)
+            ->shouldNotBeCalled();
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->getUsersAction(
+            $repository->reveal(),
+            $page,
+            $quantity
+        );
+    }
+
     public function testCreateUserAction()
     {
         $user = $this->createUser();
-        $controller = $this->createUserController($user, null, UserVoter::CREATE);
+        $controller = $this->createUserController(
+            $user,
+            null,
+            UserVoter::CREATE,
+            true
+        );
         $violations = $this->createMock(ConstraintViolationListInterface::class);
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($user)->shouldBeCalled();
@@ -127,6 +180,29 @@ class UserControllerTest extends TestCase
         $this->checkUser($user, $responseUser);
     }
 
+    public function testCreateUserAction_accessDenied()
+    {
+        $user = $this->createUser();
+        $controller = $this->createUserController(
+            $user,
+            null,
+            UserVoter::CREATE,
+            false
+        );
+        $violations = $this->createMock(ConstraintViolationListInterface::class);
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->persist($user)->shouldNotBeCalled();
+        $manager->flush()->shouldNotBeCalled();
+        $encoder = $this->prophesize(UserPasswordEncoderInterface::class);
+        $encoder
+            ->encodePassword($user, $user->getPassword())
+            ->shouldNotBeCalled()
+        ;
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->createUserAction($user, $manager->reveal(), $violations, $encoder->reveal());
+    }
+
     public function testEditUserAction()
     {
         $user = $this->createUser();
@@ -137,7 +213,12 @@ class UserControllerTest extends TestCase
             "test-modified-password",
             ["ROLE_USER", "ROLE_ADMIN"]
         );
-        $controller = $this->createUserController($user, $user, UserVoter::UPDATE);
+        $controller = $this->createUserController(
+            $user,
+            $user,
+            UserVoter::UPDATE,
+            true
+        );
         $manager = $this->createMock(EntityManagerInterface::class);
         $manager->expects($this->once())
             ->method("flush");
@@ -162,13 +243,51 @@ class UserControllerTest extends TestCase
         $this->checkUser($modifiedUser, $responseUser, false);
     }
 
+    public function testEditUserAction_accessDenied()
+    {
+        $user = $this->createUser();
+        $modifiedUser = $this->createUser(
+            null,
+            "test-modified-name",
+            "modified.user@test.com",
+            "test-modified-password",
+            ["ROLE_USER", "ROLE_ADMIN"]
+        );
+        $controller = $this->createUserController(
+            $user,
+            $user,
+            UserVoter::UPDATE,
+            false
+        );
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->expects($this->never())
+            ->method("flush");
+        $manager->expects($this->never())
+            ->method("persist");
+        $manager->expects($this->never())
+            ->method("remove");
+        $encoder = $this->prophesize(UserPasswordEncoderInterface::class);
+        $encoder
+            ->encodePassword($modifiedUser, $modifiedUser->getPassword())
+            ->shouldNotBeCalled()
+        ;
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+    }
+
     public function testDeleteUserAction()
     {
         $user = $this->createUser();
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($user)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $controller = $this->createUserController($user, $user, UserVoter::DELETE);
+        $controller = $this->createUserController(
+            $user,
+            $user,
+            UserVoter::DELETE,
+            true
+        );
 
         $response = $controller->deleteUserAction($user, $manager->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
@@ -176,16 +295,45 @@ class UserControllerTest extends TestCase
         $this->assertInstanceOf(View::class, $response);
     }
 
+    public function testDeleteUserAction_accessDenied()
+    {
+        $user = $this->createUser();
+        $manager = $this->prophesize(EntityManagerInterface::class);
+        $manager->remove($user)->shouldNotBeCalled();
+        $manager->flush()->shouldNotBeCalled();
+        $controller = $this->createUserController(
+            $user,
+            $user,
+            UserVoter::DELETE,
+            false
+        );
+
+        $this->expectException(AccessDeniedException::class);
+        $controller->deleteUserAction($user, $manager->reveal());
+    }
+
     // Private
 
-    private function createUserController(?User $user = null, $entity = null, ?string $voterAction = null)
+    private function createUserController(
+        ?User $user = null,
+        $entity = null,
+        ?string $voterAction = null,
+        bool $isGranted = true
+    )
     {
         $viewHandler = $this->createMock(ViewHandler::class);
         $controller = new UserController();
         $controller->setViewHandler($viewHandler);
 
         if ($user) {
-            $controller->setContainer($this->createSecurityContainerMock($user, $entity, $voterAction)->reveal());
+            $controller->setContainer(
+                $this->createSecurityContainerMock(
+                    $user,
+                    $entity,
+                    $voterAction,
+                    $isGranted
+                )->reveal()
+            );
         }
 
         return $controller;
