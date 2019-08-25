@@ -142,9 +142,9 @@ class Product
     private $updatedAt;
 
     /**
-     * @var \DateTime $contentChanged
+     * @var \DateTime $contentChangedAt
      *
-     * @ORM\Column(name="content_changed", type="datetime", nullable=true)
+     * @ORM\Column(name="content_changed_at", type="datetime", nullable=true)
      * @Gedmo\Timestampable(
      *     on="change",
      *     field={
@@ -156,7 +156,7 @@ class Product
      *      }
      * )
      */
-    private $contentChanged;
+    private $contentChangedAt;
 
     public function getId(): ?int
     {
