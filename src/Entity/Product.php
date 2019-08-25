@@ -4,6 +4,7 @@ namespace App\Entity;
 
 
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
 use JMS\Serializer\Annotation as Serializer;
@@ -123,6 +124,39 @@ class Product
      * @Serializer\Groups({"product_detail"})
      */
     private $detail = [];
+
+    /**
+     * @var \DateTime $createdAt
+     *
+     * @Gedmo\Timestampable(on="create")
+     * @ORM\Column(type="datetime")
+     */
+    private $createdAt;
+
+    /**
+     * @var \DateTime $updatedAt
+     *
+     * @Gedmo\Timestampable(on="update")
+     * @ORM\Column(type="datetime")
+     */
+    private $updatedAt;
+
+    /**
+     * @var \DateTime $contentChanged
+     *
+     * @ORM\Column(name="content_changed", type="datetime", nullable=true)
+     * @Gedmo\Timestampable(
+     *     on="change",
+     *     field={
+     *          "model",
+     *          "brand",
+     *          "quantity",
+     *          "price",
+     *          "detail"
+     *      }
+     * )
+     */
+    private $contentChanged;
 
     public function getId(): ?int
     {

@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,6 +45,11 @@ class ProductController extends AbstractFOSRestController
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a product"
+     * )
+     * @Cache(
+     *     expires="00:10",
+     *     lastModified="post.getUpdatedAt()",
+     *     Etag="'Product' ~ Product.getId() ~ product.getUpdatedAt().getTimestamp()"
      * )
      */
     public function getProductAction(Product $product)
