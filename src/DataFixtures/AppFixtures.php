@@ -29,12 +29,14 @@ class AppFixtures extends Fixture
         "orange.com"
     ];
     private $users = [];
+    private $faker;
 
     private const HASHED_PASSWORD = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
 
     public function __construct(ParameterBagInterface $parameterBag)
     {
         $this->parameterBag = $parameterBag;
+        $this->faker = Factory::create("fr_FR");
     }
 
     public function load(ObjectManager $manager)
@@ -92,14 +94,12 @@ class AppFixtures extends Fixture
 
     private function loadCustomers()
     {
-        $faker = Factory::create("fr_FR");
-
         for ($i = 0; $i < $this->customersCount; $i++) {
             $customer = new Customer();
-            $customer->setName($faker->firstName);
-            $customer->setSurname($faker->lastName);
-            $customer->setEmail($faker->email);
-            $customer->setAddress($faker->address);
+            $customer->setName($this->faker->firstName);
+            $customer->setSurname($this->faker->lastName);
+            $customer->setEmail($this->faker->email);
+            $customer->setAddress($this->faker->address);
             $customer->setUser($this->users[mt_rand(0, count($this->users) - 1)]);
 
             $this->manager->persist($customer);
@@ -117,7 +117,18 @@ class AppFixtures extends Fixture
     {
         $products = $this->getProductsFromDemo();
 
+        /**
+         * @var Product $product
+         */
         foreach ($products as $product) {
+            $product->setCreatedAt($this->faker->dateTimeBetween("-2 years"));
+            if (mt_rand(0, 3) === 0) {
+                $interval = new \DateInterval("P" . mt_rand(1, 50) ."D");
+                $updatedAt = clone $product->getCreatedAt();
+                $updatedAt->add($interval);
+                $product->setUpdatedAt($updatedAt);
+                $product->setContentChangedAt($updatedAt);
+            }
             $this->manager->persist($product);
         }
 

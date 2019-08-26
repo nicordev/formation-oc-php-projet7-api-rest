@@ -98,7 +98,7 @@ class ProductController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
-     * @View(serializerGroups = {"product_list"})
+     * @View()
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
