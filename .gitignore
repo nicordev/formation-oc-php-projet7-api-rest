@@ -4,6 +4,7 @@ bin/.phpunit/
 php.ini
 server_start
 cov/
+config/jwt/private.pem
 
 ###> symfony/framework-bundle ###
 /.env.local
