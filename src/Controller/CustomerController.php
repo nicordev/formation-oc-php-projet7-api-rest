@@ -6,6 +6,7 @@ use App\Entity\Customer;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
+use App\Security\CustomerVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
@@ -16,31 +17,43 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
+use FOS\RestBundle\Controller\Annotations\View;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Swagger\Annotations as SWG;
 
 class CustomerController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
     /**
+     * Get the detail of a customer of your shop
+     *
      * @Get(
-     *     path = "/customers/{id}",
+     *     path = "/api/customers/{id}",
      *     name = "customer_show",
      *     requirements = {"id": "\d+"}
+     * )
+     * @View
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the detail of a customer"
      * )
      */
     public function getCustomerAction(Customer $customer)
     {
-        $view = $this->view($customer, Response::HTTP_OK);
+        $this->denyAccessUnlessGranted(CustomerVoter::READ, $customer);
 
-        return $this->handleView($view);
+        return $this->view($customer, Response::HTTP_OK);
     }
 
     /**
+     * Get the list of all the customers of your shop
+     *
      * @Get(
-     *     path = "/customers",
+     *     path = "/api/customers",
      *     name = "customer_list"
      * )
      * @Rest\QueryParam(
@@ -55,13 +68,23 @@ class CustomerController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
+     * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the list of all customers of the current user"
+     * )
      */
     public function getCustomersAction(
         CustomerRepository $repository,
         int $page,
         int $quantity
     ) {
-        $paginatedCustomers = $repository->getPage($page, $quantity);
+        $paginatedCustomers = $repository->getPage(
+            $page,
+            $quantity,
+            null,
+            ["user" => $this->getUser()]
+        );
         $customers = $paginatedCustomers[PaginatedRepository::KEY_PAGING_ENTITIES];
 
         $paginatedRepresentation = new PaginatedRepresentation(
@@ -73,59 +96,68 @@ class CustomerController extends AbstractFOSRestController
             ],
             $page,
             $quantity,
-            $paginatedCustomers[PaginatedRepository::KEY_PAGING_COUNT]
+            $paginatedCustomers[PaginatedRepository::KEY_PAGING_PAGES_COUNT]
         );
 
-        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
-
-        return $this->handleView($view);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
+     * Add a customer to your list of customers
+     *
      * @Post(
-     *     "/customers",
+     *     "/api/customers",
      *     name = "customer_create"
      * )
      * @ParamConverter(
      *     "newCustomer",
      *     converter="fos_rest.request_body",
      *     options = {
-     *          "validator" = {"groups" = "Create"}
+     *          "validator" = {"groups" = "customer_create"}
      *     }
      * )
+     * @View()
+     * @SWG\Response(
+     *     response = 201,
+     *     description = "Return the list of all customers of the current user"
+     * )
      */
-    public function createAction(Customer $newCustomer, EntityManagerInterface $manager, ConstraintViolationListInterface $violations)
-    {
+    public function createCustomerAction(
+        Customer $newCustomer,
+        EntityManagerInterface $manager,
+        ConstraintViolationListInterface $violations
+    ) {
         $this->handleViolations($violations);
 
+        $newCustomer->setUser($this->getUser());
         $manager->persist($newCustomer);
         $manager->flush();
 
-        $view = $this->view(
-            $newCustomer,
-            Response::HTTP_CREATED,
-            ['Location' => $this->generateUrl(
-                'customer_show',
-                [
-                    'id' => $newCustomer->getId(),
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                ]
-            )]
-        );
-
-        return $this->handleView($view);
+        return $this->view($newCustomer, Response::HTTP_CREATED);
     }
 
     /**
+     * Modify the information on one of your customers
+     *
      * @Post(
-     *     "/customers/{id}",
+     *     "/api/customers/{id}",
      *     name = "customer_edit",
      *     requirements = {"id": "\d+"}
      * )
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
+     * @View()
+     * @SWG\Response(
+     *     response = 202,
+     *     description = "Update a customer of the current user"
+     * )
      */
-    public function editAction(Customer $customer, Customer $modifiedCustomer, EntityManagerInterface $manager)
-    {
+    public function editCustomerAction(
+        Customer $customer,
+        Customer $modifiedCustomer,
+        EntityManagerInterface $manager
+    ) {
+        $this->denyAccessUnlessGranted(CustomerVoter::UPDATE, $customer);
+
         if ($modifiedCustomer->getName() !== null) {
             $customer->setName($modifiedCustomer->getName());
         }
@@ -140,23 +172,31 @@ class CustomerController extends AbstractFOSRestController
         }
 
         $manager->flush();
-        $view = $this->view($customer, Response::HTTP_ACCEPTED);
 
-        return $this->handleView($view);
+        return $this->view($customer, Response::HTTP_ACCEPTED);
     }
 
     /**
+     * Delete a customer from your list of customers
+     *
      * @Delete(
-     *     "/customers/{id}",
+     *     "/api/customers/{id}",
      *     name = "customer_delete"
      * )
+     * @View()
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Delete a customer of the current user"
+     * )
      */
-    public function deleteAction(Customer $customer, EntityManagerInterface $manager)
+    public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
     {
+        $this->denyAccessUnlessGranted(CustomerVoter::DELETE, $customer);
+
+        $id = $customer->getId();
         $manager->remove($customer);
         $manager->flush();
-        $view = $this->view($customer, Response::HTTP_ACCEPTED);
 
-        return $this->handleView($view);
+        return $this->view(null, Response::HTTP_OK);
     }
 }

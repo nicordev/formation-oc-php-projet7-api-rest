@@ -52,13 +52,19 @@ class Paginator
             $this->currentPage = $currentPage;
         }
         if ($itemsPerPage) {
+            if ($itemsPerPage < 1) {
+                $itemsPerPage = 1;
+            }
             $this->itemsPerPage = $itemsPerPage;
         }
         if ($itemsCount) {
             $this->itemsCount = $itemsCount;
         }
         if ($itemsCount && $itemsPerPage) {
-            $this->pagesCount = self::countPages($itemsCount, $itemsPerPage);
+            if ($itemsPerPage > $itemsCount) {
+                $this->itemsPerPage = $itemsCount;
+            }
+            $this->pagesCount = self::countPages($this->itemsCount, $this->itemsPerPage);
             if ($fitCurrentPageInBoundaries) {
                 $this->fitCurrentPageInBoundaries();
             }
@@ -67,8 +73,8 @@ class Paginator
             $this->pagingOffset = self::calculatePagingOffset($this->currentPage, $itemsPerPage); // Use of the object's attribute to stay in boundaries
         }
         if ($currentPage && $this->pagesCount) {
-            $this->nextPage = self::calculateNextPageNumber($currentPage, $this->pagesCount);
-            $this->previousPage = self::calculatePreviousPageNumber($currentPage, $this->pagesCount);
+            $this->nextPage = self::calculateNextPageNumber($this->currentPage, $this->pagesCount);
+            $this->previousPage = self::calculatePreviousPageNumber($this->currentPage, $this->pagesCount);
         }
     }
 
@@ -77,14 +83,28 @@ class Paginator
      */
     public function fitCurrentPageInBoundaries()
     {
-        if ($this->currentPage < 1) {
-            $this->currentPage = 1;
-        } elseif (!empty($this->pagesCount) && $this->currentPage > $this->pagesCount) {
-            $this->currentPage = $this->pagesCount;
-        }
+        $this->currentPage = self::applyBoundaries($this->currentPage, 1, $this->pagesCount ?? $this->currentPage);
     }
 
     // Static
+
+    /**
+     * Give the correct page number within the boundaries
+     *
+     * @param int $page
+     * @param int $max
+     * @param int $min
+     * @return int
+     */
+    public static function applyBoundaries(int $page, int $min, int $max)
+    {
+        if ($page < $min) {
+            return $min;
+        } elseif ($page > $max) {
+            return $max;
+        }
+        return $page;
+    }
 
     /**
      * Calculate the next page number
@@ -95,13 +115,7 @@ class Paginator
      */
     public static function calculateNextPageNumber(int $currentPage, int $pagesCount): int
     {
-        $nextPage = $currentPage + 1;
-
-        if ($nextPage > $pagesCount) {
-            return $currentPage;
-        }
-
-        return $nextPage;
+        return self::applyBoundaries($currentPage + 1, 1, $pagesCount);
     }
 
     /**
@@ -113,13 +127,7 @@ class Paginator
      */
     public static function calculatePreviousPageNumber(int $currentPage, int $pagesCount): int
     {
-        $previousPage = $currentPage - 1;
-
-        if ($previousPage < 1) {
-            return $currentPage;
-        }
-
-        return $previousPage;
+        return self::applyBoundaries($currentPage - 1, 1, $pagesCount);
     }
 
     /**

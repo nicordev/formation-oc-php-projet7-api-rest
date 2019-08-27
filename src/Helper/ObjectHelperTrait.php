@@ -4,8 +4,27 @@ namespace App\Helper;
 
 use ReflectionObject;
 
-trait ObjectEditorTrait
+trait ObjectHelperTrait
 {
+    /**
+     * Fetch all property names of an object
+     *
+     * @param $object
+     * @return array
+     */
+    public function listProperties($object)
+    {
+        $reflectionObject = new ReflectionObject($object);
+        $properties = $reflectionObject->getProperties();
+        $propertiesNames = [];
+
+        foreach ($properties as $property) {
+            $propertiesNames[] = $property->getName();
+        }
+
+        return $propertiesNames;
+    }
+
     /**
      * Update the properties value of an object with the values coming from another object
      *

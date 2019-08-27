@@ -16,7 +16,8 @@ use JMS\Serializer\Annotation as Serializer;
  *          "product_show_id",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  * @Hateoas\Relation(
  *      "self",
@@ -24,7 +25,26 @@ use JMS\Serializer\Annotation as Serializer;
  *          "product_show_model",
  *          parameters = { "model" = "expr(object.getModel())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "product_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "product_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  */
 class Product
@@ -33,45 +53,76 @@ class Product
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $model;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $brand;
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $price;
 
     /**
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      * @Serializer\Since("1.0")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"product_create"}
      * )
+     * @Serializer\Groups({
+     *     "product_list",
+     *     "product_detail"
+     * })
      */
     private $quantity;
+
+    /**
+     * @ORM\Column(type="json")
+     * @Serializer\Groups({"product_detail"})
+     */
+    private $detail = [];
 
     public function getId(): ?int
     {
@@ -122,6 +173,18 @@ class Product
     public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
+
+        return $this;
+    }
+
+    public function getDetail(): ?array
+    {
+        return $this->detail;
+    }
+
+    public function setDetail(array $detail): self
+    {
+        $this->detail = $detail;
 
         return $this;
     }

@@ -1,7 +1,10 @@
+bin/.phpunit/
 .idea/
 .testing_stuff/
 php.ini
 server_start
+cov/
+config/jwt/private.pem
 
 ###> symfony/framework-bundle ###
 /.env.local
@@ -11,3 +14,13 @@ server_start
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+###> symfony/phpunit-bridge ###
+.phpunit
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###

@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as Serializer;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomerRepository")
@@ -14,7 +15,8 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "customer_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  */
 class Customer
@@ -23,40 +25,51 @@ class Customer
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Serializer\Type("integer")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $surname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
-     *     groups = {"Create"}
+     *     groups = {"customer_create"}
      * )
      */
     private $address;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="customers", cascade={"persist"})
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $user;
 
     public function getId(): ?int
     {
@@ -107,6 +120,18 @@ class Customer
     public function setAddress(string $address): self
     {
         $this->address = $address;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
 
         return $this;
     }

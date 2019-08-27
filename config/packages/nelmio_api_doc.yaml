@@ -1,0 +1,9 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: BileMoAPI
+            description: This is the BileMo API. You can either consult the list of all mobiles available, get the details of a particular phone and manage the list of your customers.
+            version: 1.0.0
+    areas: # to filter documented areas
+        path_patterns:
+            - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
