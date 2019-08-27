@@ -79,11 +79,19 @@ class CustomerController extends AbstractFOSRestController
         int $page,
         int $quantity
     ) {
+        $requestedProperties = [
+            "id",
+            "name",
+            "surname",
+            "email",
+            "address"
+        ];
         $paginatedCustomers = $repository->getPage(
             $page,
             $quantity,
+            $requestedProperties,
             null,
-            ["user" => $this->getUser()]
+            ["user" => $this->getUser()->getId()]
         );
         $customers = $paginatedCustomers[PaginatedRepository::KEY_PAGING_ENTITIES];
 

@@ -34,6 +34,7 @@ abstract class PaginatedRepository extends ServiceEntityRepository
      *
      * @param int $pageNumber
      * @param int $itemsPerPage
+     * @param array $requestedProperties
      * @param array $orderBy Could be something like ["price" => "ASC"]
      * @param array $criteria
      * @param bool $exactSearch
@@ -42,34 +43,42 @@ abstract class PaginatedRepository extends ServiceEntityRepository
     public function getPage(
         int $pageNumber,
         int $itemsPerPage,
+        ?array $requestedProperties = null,
         ?array $orderBy = null,
         ?array $criteria = null,
         bool $exactSearch = true
     ) {
         $itemsCount = $this->count([]);
         $this->paginator->update($pageNumber, $itemsPerPage, $itemsCount);
+        $queryBuilder = $this->createQueryBuilder("a");
 
-        if ($exactSearch) {
-            $entities =  $this->findBy(
-                $criteria ?? [],
-                $orderBy ?? null,
-                $this->paginator->itemsPerPage,
-                $this->paginator->pagingOffset
-            );
-        } else {
+        if ($requestedProperties) {
+            $queryBuilder->select("a." . implode(", a.", $requestedProperties));
+        }
+
+        if ($criteria) {
             $column = array_key_first($criteria);
+
+            if ($exactSearch) {
+                $criteriaValue = $criteria[$column];
+                $queryBuilder->where("a.{$column} = :criteria");
+            } else {
+                $criteriaValue = "%{$criteria[$column]}%";
+                $queryBuilder->where("a.{$column} LIKE :criteria");
+            }
+
+            $queryBuilder->setParameter('criteria', $criteriaValue);
+        }
+
+        if ($orderBy) {
             $orderByColumn = array_key_first($orderBy);
-            $criteriaValue = "%{$criteria[$column]}%";
-            $queryBuilder = $this->createQueryBuilder("p")
-                ->andWhere('p.' . $column . ' LIKE :criteria')
-                ->setParameter('criteria', $criteriaValue)
-                ->orderBy('p.' . $orderByColumn, $orderBy[$orderByColumn])
+            $queryBuilder->orderBy('a.' . $orderByColumn, $orderBy[$orderByColumn])
                 ->setFirstResult($this->paginator->pagingOffset)
                 ->setMaxResults($this->paginator->itemsPerPage)
-                ->getQuery();
-
-            $entities = $queryBuilder->execute();
+            ;
         }
+
+        $entities = $queryBuilder->getQuery()->execute();
 
         return [
             self::KEY_PAGING_ENTITIES => $entities,

@@ -48,8 +48,8 @@ class ProductController extends AbstractFOSRestController
      * )
      * @Cache(
      *     expires="00:10",
-     *     lastModified="post.getUpdatedAt()",
-     *     Etag="'Product' ~ Product.getId() ~ product.getUpdatedAt().getTimestamp()"
+     *     lastModified="product.getUpdatedAt()",
+     *     Etag="'Product' ~ product.getId() ~ product.getUpdatedAt().getTimestamp()"
      * )
      */
     public function getProductAction(Product $product)
@@ -122,9 +122,17 @@ class ProductController extends AbstractFOSRestController
         }
 
         $exactValue = $exact !== "false";
+        $requestedProperties = [
+            "id",
+            "model",
+            "brand",
+            "price",
+            "quantity"
+        ];
         $paginatedProducts = $repository->getPage(
             $page,
             $quantity,
+            $requestedProperties,
             [$property => strtoupper($order)],
             $criteria ?? null,
             $exactValue

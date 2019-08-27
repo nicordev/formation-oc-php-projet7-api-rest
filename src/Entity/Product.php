@@ -130,6 +130,7 @@ class Product
      *
      * @Gedmo\Timestampable(on="create")
      * @ORM\Column(type="datetime")
+     * @Serializer\Groups({"product_detail"})
      */
     private $createdAt;
 
@@ -138,6 +139,7 @@ class Product
      *
      * @Gedmo\Timestampable(on="update")
      * @ORM\Column(type="datetime", nullable=true)
+     * @Serializer\Groups({"product_detail"})
      */
     private $updatedAt;
 
@@ -155,6 +157,7 @@ class Product
      *          "detail"
      *      }
      * )
+     * @Serializer\Groups({"product_detail"})
      */
     private $contentChangedAt;
 

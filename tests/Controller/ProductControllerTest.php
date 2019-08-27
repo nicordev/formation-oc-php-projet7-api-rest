@@ -68,9 +68,17 @@ class ProductControllerTest extends TestCase
 
         $repository = $this->prophesize(ProductRepository::class);
         $exactValue = $exact !== "false";
+        $requestedProperties = [
+            "id",
+            "model",
+            "brand",
+            "price",
+            "quantity"
+        ];
         $repository->getPage(
             $page,
             $quantity,
+            $requestedProperties,
             [$property => strtoupper($order)],
             null,
             $exactValue
