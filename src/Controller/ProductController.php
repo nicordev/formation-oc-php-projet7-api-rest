@@ -239,6 +239,6 @@ class ProductController extends AbstractFOSRestController
         $manager->remove($product);
         $manager->flush();
 
-        return  $this->view("Product {$id} deleted.", Response::HTTP_OK);
+        return  $this->view(null, Response::HTTP_OK);
     }
 }

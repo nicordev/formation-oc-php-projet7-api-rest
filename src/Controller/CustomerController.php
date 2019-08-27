@@ -197,6 +197,6 @@ class CustomerController extends AbstractFOSRestController
         $manager->remove($customer);
         $manager->flush();
 
-        return $this->view("Customer {$id} deleted.", Response::HTTP_OK);
+        return $this->view(null, Response::HTTP_OK);
     }
 }

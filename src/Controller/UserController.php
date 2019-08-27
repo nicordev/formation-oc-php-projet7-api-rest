@@ -208,6 +208,6 @@ class UserController extends AbstractFOSRestController
         $manager->remove($user);
         $manager->flush();
 
-        return $this->view("User {$id} deleted.", Response::HTTP_OK);
+        return $this->view(null, Response::HTTP_OK);
     }
 }
