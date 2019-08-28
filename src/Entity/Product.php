@@ -55,7 +55,6 @@ class Product
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
-     * @Serializer\Since("1.0")
      * @Serializer\Groups({
      *     "product_list",
      *     "product_detail"
@@ -66,7 +65,6 @@ class Product
     /**
      * @ORM\Column(type="string", length=255)
      * @Serializer\Type("string")
-     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
@@ -80,7 +78,6 @@ class Product
     /**
      * @ORM\Column(type="string", length=255)
      * @Serializer\Type("string")
-     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
@@ -94,7 +91,6 @@ class Product
     /**
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
-     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
@@ -108,7 +104,6 @@ class Product
     /**
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
-     * @Serializer\Since("1.0")
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
