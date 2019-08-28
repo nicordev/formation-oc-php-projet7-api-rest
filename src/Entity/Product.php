@@ -218,10 +218,13 @@ class Product
 
     /**
      * @param \DateTime $createdAt
+     * @return Product
      */
-    public function setCreatedAt(\DateTime $createdAt): void
+    public function setCreatedAt(\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     /**
@@ -234,9 +237,12 @@ class Product
 
     /**
      * @param \DateTime $updatedAt
+     * @return Product
      */
-    public function setUpdatedAt(\DateTime $updatedAt): void
+    public function setUpdatedAt(\DateTime $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 }

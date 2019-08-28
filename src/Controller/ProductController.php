@@ -103,6 +103,9 @@ class ProductController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Return the list of all products available"
      * )
+     * @Cache(
+     *     expires="00:10"
+     * )
      */
     public function getProductsAction(
         ProductRepository $repository,

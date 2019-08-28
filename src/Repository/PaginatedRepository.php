@@ -82,11 +82,12 @@ abstract class PaginatedRepository extends ServiceEntityRepository
 
         if ($orderBy) {
             $orderByColumn = array_key_first($orderBy);
-            $queryBuilder->orderBy('a.' . $orderByColumn, $orderBy[$orderByColumn])
-                ->setFirstResult($this->paginator->pagingOffset)
-                ->setMaxResults($this->paginator->itemsPerPage)
-            ;
+            $queryBuilder->orderBy('a.' . $orderByColumn, $orderBy[$orderByColumn]);
         }
+
+        $queryBuilder->setFirstResult($this->paginator->pagingOffset)
+            ->setMaxResults($this->paginator->itemsPerPage)
+        ;
 
         $entities = $queryBuilder->getQuery()->execute();
 
