@@ -143,24 +143,6 @@ class Product
      */
     private $updatedAt;
 
-    /**
-     * @var \DateTime $contentChangedAt
-     *
-     * @ORM\Column(name="content_changed_at", type="datetime", nullable=true)
-     * @Gedmo\Timestampable(
-     *     on="change",
-     *     field={
-     *          "model",
-     *          "brand",
-     *          "quantity",
-     *          "price",
-     *          "detail"
-     *      }
-     * )
-     * @Serializer\Groups({"product_detail"})
-     */
-    private $contentChangedAt;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -256,21 +238,5 @@ class Product
     public function setUpdatedAt(\DateTime $updatedAt): void
     {
         $this->updatedAt = $updatedAt;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getContentChangedAt(): \DateTime
-    {
-        return $this->contentChangedAt;
-    }
-
-    /**
-     * @param \DateTime $contentChangedAt
-     */
-    public function setContentChangedAt(\DateTime $contentChangedAt): void
-    {
-        $this->contentChangedAt = $contentChangedAt;
     }
 }

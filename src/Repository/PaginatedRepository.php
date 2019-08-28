@@ -38,7 +38,8 @@ abstract class PaginatedRepository extends ServiceEntityRepository
      * @param array $orderBy Could be something like ["price" => "ASC"]
      * @param array $criteria
      * @param bool $exactSearch
-     * @return array
+     * @return array | null
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function getPage(
         int $pageNumber,
@@ -48,7 +49,16 @@ abstract class PaginatedRepository extends ServiceEntityRepository
         ?array $criteria = null,
         bool $exactSearch = true
     ) {
-        $itemsCount = $this->count([]);
+        if ($criteria) {
+            $itemsCount = $this->countWithCriteria($criteria, $exactSearch);
+        } else {
+            $itemsCount = $this->count([]);
+        }
+
+        if ($itemsCount === 0) {
+            return null;
+        }
+
         $this->paginator->update($pageNumber, $itemsPerPage, $itemsCount);
         $queryBuilder = $this->createQueryBuilder("a");
 
@@ -89,5 +99,34 @@ abstract class PaginatedRepository extends ServiceEntityRepository
             self::KEY_PAGING_NEXT_PAGE => $this->paginator->nextPage,
             self::KEY_PAGING_PREVIOUS_PAGE => $this->paginator->previousPage
         ];
+    }
+
+    /**
+     * Count the number of entities regarding the given criteria
+     *
+     * @param array $criteria
+     * @param bool $exactSearch
+     * @return int
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    protected function countWithCriteria(array $criteria, bool $exactSearch)
+    {
+        $column = array_key_first($criteria);
+
+        if ($exactSearch) {
+            $criteriaValue = $criteria[$column];
+            $operator = "=";
+        } else {
+            $criteriaValue = "%{$criteria[$column]}%";
+            $operator = "LIKE";
+        }
+
+        $countQueryBuilder = $this->createQueryBuilder("a")
+            ->select("COUNT(a)")
+            ->where("a.{$column} {$operator} :criteria")
+            ->setParameter('criteria', $criteriaValue)
+        ;
+
+        return (int) $countQueryBuilder->getQuery()->getSingleScalarResult();
     }
 }

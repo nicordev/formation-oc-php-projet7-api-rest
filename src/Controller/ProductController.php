@@ -137,6 +137,11 @@ class ProductController extends AbstractFOSRestController
             $criteria ?? null,
             $exactValue
         );
+
+        if (!$paginatedProducts) {
+            return $this->view(null, Response::HTTP_NO_CONTENT);
+        }
+
         $paginatedRepresentation = new PaginatedRepresentation(
             new CollectionRepresentation($paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES]),
             "product_list",
