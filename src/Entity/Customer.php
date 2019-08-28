@@ -82,7 +82,6 @@ class Customer
      *
      * @Gedmo\Timestampable(on="create")
      * @ORM\Column(type="datetime")
-     * @Serializer\Groups({"customer_detail"})
      */
     private $createdAt;
 
@@ -91,7 +90,6 @@ class Customer
      *
      * @Gedmo\Timestampable(on="update")
      * @ORM\Column(type="datetime", nullable=true)
-     * @Serializer\Groups({"customer_detail"})
      */
     private $updatedAt;
 

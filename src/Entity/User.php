@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -18,42 +19,45 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Serializer\Since("1.0")
      * @Serializer\Type("integer")
+     * @Serializer\Groups({"user_detail"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"user_create"}
      * )
-     * @Serializer\Type("string")
+     * @Serializer\Groups({"user_detail"})
      */
     private $email;
 
     /**
      * @ORM\Column(type="json")
      * @Serializer\Type("array")
+     * @Serializer\Groups({"user_detail"})
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"user_create"}
      * )
-     * @Serializer\Type("string")
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
      * @Assert\NotBlank(
      *     groups = {"user_create"}
      * )
-     * @Serializer\Type("string")
+     * @Serializer\Groups({"user_detail"})
      */
     private $name;
 
@@ -61,6 +65,22 @@ class User implements UserInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Customer", mappedBy="user", orphanRemoval=true, cascade={"persist"})
      */
     private $customers;
+
+    /**
+     * @var \DateTime $createdAt
+     *
+     * @Gedmo\Timestampable(on="create")
+     * @ORM\Column(type="datetime")
+     */
+    private $createdAt;
+
+    /**
+     * @var \DateTime $updatedAt
+     *
+     * @Gedmo\Timestampable(on="update")
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $updatedAt;
 
     public const ROLE_ADMIN = "ROLE_ADMIN";
     public const ROLE_USER = "ROLE_USER";
@@ -187,6 +207,44 @@ class User implements UserInterface
                 $customer->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @param \DateTime $createdAt
+     * @return Product
+     */
+    public function setCreatedAt(\DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getUpdatedAt(): \DateTime
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * @param \DateTime $updatedAt
+     * @return Product
+     */
+    public function setUpdatedAt(\DateTime $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }

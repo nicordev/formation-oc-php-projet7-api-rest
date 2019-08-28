@@ -17,6 +17,7 @@ use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -40,7 +41,14 @@ class UserController extends AbstractFOSRestController
      *     path = "/api/users/{name}",
      *     name = "user_show_name"
      * )
-     * @View()
+     * @View(
+     *     serializerGroups={"user_detail"}
+     * )
+     * @Cache(
+     *     expires="00:10",
+     *     lastModified="user.getUpdatedAt()",
+     *     Etag="'User' ~ user.getId() ~ user.getUpdatedAt().getTimestamp()"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a user"
@@ -73,6 +81,9 @@ class UserController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
+     * @Cache(
+     *     expires="00:10"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all users (admin only)"
@@ -85,7 +96,17 @@ class UserController extends AbstractFOSRestController
     ) {
         $this->denyAccessUnlessGranted(UserVoter::LIST);
 
-        $paginatedUsers = $repository->getPage($page, $quantity);
+        $requestedProperties = [
+            "id",
+            "name",
+            "email",
+            "roles"
+        ];
+        $paginatedUsers = $repository->getPage(
+            $page,
+            $quantity,
+            $requestedProperties
+        );
         $users = $paginatedUsers[UserRepository::KEY_PAGING_ENTITIES];
 
         $paginatedRepresentation = new PaginatedRepresentation(
