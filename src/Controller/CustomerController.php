@@ -13,6 +13,7 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
@@ -36,7 +37,14 @@ class CustomerController extends AbstractFOSRestController
      *     name = "customer_show",
      *     requirements = {"id": "\d+"}
      * )
-     * @View
+     * @View(
+     *     serializerGroups = {"customer_detail"}
+     * )
+     * @Cache(
+     *     expires="00:10",
+     *     lastModified="customer.getUpdatedAt()",
+     *     Etag="'Customer' ~ customer.getId() ~ customer.getUpdatedAt().getTimestamp()"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a customer"
@@ -69,6 +77,9 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
+     * @Cache(
+     *     expires="00:10"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all customers of the current user"

@@ -42,14 +42,14 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_show_model"
      * )
      * @View(serializerGroups = {"product_detail"})
-     * @SWG\Response(
-     *     response = 200,
-     *     description = "Return the detail of a product"
-     * )
      * @Cache(
      *     expires="00:10",
      *     lastModified="product.getUpdatedAt()",
      *     Etag="'Product' ~ product.getId() ~ product.getUpdatedAt().getTimestamp()"
+     * )
+     * @SWG\Response(
+     *     response = 200,
+     *     description = "Return the detail of a product"
      * )
      */
     public function getProductAction(Product $product)
@@ -99,12 +99,12 @@ class ProductController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
+     * @Cache(
+     *     expires="00:10"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
-     * )
-     * @Cache(
-     *     expires="00:10"
      * )
      */
     public function getProductsAction(
