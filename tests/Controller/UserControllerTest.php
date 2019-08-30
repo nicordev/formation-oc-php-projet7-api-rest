@@ -89,7 +89,16 @@ class UserControllerTest extends TestCase
         })();
 
         $repository = $this->prophesize(UserRepository::class);
-        $repository->getPage($page, $quantity)
+        $repository->getPage(
+            $page,
+            $quantity,
+            [
+                "id",
+                "name",
+                "email",
+                "roles"
+            ]
+        )
             ->willReturn([
                 PaginatedRepository::KEY_PAGING_ENTITIES => $users,
                 PaginatedRepository::KEY_PAGING_PAGES_COUNT => 3,

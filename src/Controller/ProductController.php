@@ -41,7 +41,7 @@ class ProductController extends AbstractFOSRestController
      *     path = "/api/products/{model}",
      *     name = "product_show_model"
      * )
-     * @View(serializerGroups = {"product_detail"})
+     * @View()
      * @Cache(
      *     public=true,
      *     expires="00:10",

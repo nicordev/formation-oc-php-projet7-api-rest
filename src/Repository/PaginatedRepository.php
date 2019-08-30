@@ -38,7 +38,7 @@ abstract class PaginatedRepository extends ServiceEntityRepository
      * @param array $orderBy Could be something like ["price" => "ASC"]
      * @param array $criteria
      * @param bool $exactSearch
-     * @return array | null
+     * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function getPage(

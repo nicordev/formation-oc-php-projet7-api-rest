@@ -47,6 +47,7 @@ use JMS\Serializer\Annotation as Serializer;
  *      ),
  *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
+ * @Serializer\ExclusionPolicy("ALL")
  */
 class Product
 {
@@ -55,10 +56,7 @@ class Product
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
-     * @Serializer\Groups({
-     *     "product_list",
-     *     "product_detail"
-     * })
+     * @Serializer\Expose
      */
     private $id;
 
@@ -68,10 +66,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
-     * @Serializer\Groups({
-     *     "product_list",
-     *     "product_detail"
-     * })
+     * @Serializer\Expose
      */
     private $model;
 
@@ -81,10 +76,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
-     * @Serializer\Groups({
-     *     "product_list",
-     *     "product_detail"
-     * })
+     * @Serializer\Expose
      */
     private $brand;
 
@@ -94,10 +86,7 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
-     * @Serializer\Groups({
-     *     "product_list",
-     *     "product_detail"
-     * })
+     * @Serializer\Expose
      */
     private $price;
 
@@ -107,16 +96,14 @@ class Product
      * @Assert\NotBlank(
      *     groups = {"product_create"}
      * )
-     * @Serializer\Groups({
-     *     "product_list",
-     *     "product_detail"
-     * })
+     * @Serializer\Expose
      */
     private $quantity;
 
     /**
      * @ORM\Column(type="json")
      * @Serializer\Groups({"product_detail"})
+     * @Serializer\Expose
      */
     private $detail = [];
 

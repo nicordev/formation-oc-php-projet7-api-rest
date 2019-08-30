@@ -19,6 +19,7 @@ use JMS\Serializer\Annotation as Serializer;
  *      ),
  *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
+ * @Serializer\ExclusionPolicy("ALL")
  */
 class Customer
 {
@@ -28,6 +29,7 @@ class Customer
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
      * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $id;
 
@@ -38,6 +40,7 @@ class Customer
      *     groups = {"customer_create"}
      * )
      * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $name;
 
@@ -48,6 +51,7 @@ class Customer
      *     groups = {"customer_create"}
      * )
      * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $surname;
 
@@ -58,6 +62,7 @@ class Customer
      *     groups = {"customer_create"}
      * )
      * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $email;
 
@@ -68,12 +73,14 @@ class Customer
      *     groups = {"customer_create"}
      * )
      * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $address;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="customers", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
+     * @Serializer\Expose
      */
     private $user;
 

@@ -107,6 +107,11 @@ class UserController extends AbstractFOSRestController
             $quantity,
             $requestedProperties
         );
+
+        if (!$paginatedUsers) {
+            return $this->view(null, Response::HTTP_NO_CONTENT);
+        }
+
         $users = $paginatedUsers[UserRepository::KEY_PAGING_ENTITIES];
 
         $paginatedRepresentation = new PaginatedRepresentation(
