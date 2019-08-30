@@ -212,7 +212,6 @@ class CustomerController extends AbstractFOSRestController
     {
         $this->denyAccessUnlessGranted(CustomerVoter::DELETE, $customer);
 
-        $id = $customer->getId();
         $manager->remove($customer);
         $manager->flush();
 
