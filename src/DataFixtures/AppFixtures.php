@@ -123,7 +123,7 @@ class AppFixtures extends Fixture
         foreach ($products as $product) {
             $product->setCreatedAt($this->faker->dateTimeBetween("-2 years"));
             if (mt_rand(0, 3) === 0) {
-                $interval = new \DateInterval("P" . mt_rand(1, 50) ."D");
+                $interval = new \DateInterval("P" . mt_rand(1, 50) . "D");
                 $updatedAt = clone $product->getCreatedAt();
                 $updatedAt->add($interval);
                 $product->setUpdatedAt($updatedAt);
