@@ -68,6 +68,7 @@ class ProductController extends AbstractFOSRestController
      * @Rest\QueryParam(
      *     name = "property",
      *     requirements = "id|price|quantity|brand|model",
+     *     strict = true,
      *     default = "price",
      *     description = "Property name required to order results or do a search"
      * )
@@ -258,7 +259,6 @@ class ProductController extends AbstractFOSRestController
      */
     public function deleteProductAction(Product $product, EntityManagerInterface $manager)
     {
-        $id = $product->getId();
         $manager->remove($product);
         $manager->flush();
 
