@@ -29,6 +29,14 @@ class AppFixtures extends Fixture
         "orange.com"
     ];
     private $users = [];
+    /**
+     * @var User
+     */
+    private $demoUser;
+    /**
+     * @var User
+     */
+    private $demoAdmin;
     private $faker;
 
     private const HASHED_PASSWORD = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
@@ -71,36 +79,52 @@ class AppFixtures extends Fixture
             $this->users[] = $user;
         }
 
-        // Easy to get user
-        $testUser = new User();
-        $testUser->setEmail("user@easy.com")
+        // Demo user
+        $demoUser = new User();
+        $demoUser->setEmail("user@demo.com")
             ->setPassword(self::HASHED_PASSWORD)
-            ->setName("Easy User")
+            ->setName("Demo User")
             ->setRoles(["ROLE_USER"]);
-        $this->manager->persist($testUser);
+        $this->manager->persist($demoUser);
+        $this->demoUser = $demoUser;
 
         $this->manager->flush();
 
-        // Test admin
-        $testAdmin = new User();
-        $testAdmin->setEmail("admin@easy.com")
+        // Demo admin
+        $demoAdmin = new User();
+        $demoAdmin->setEmail("admin@demo.com")
             ->setPassword(self::HASHED_PASSWORD)
-            ->setName("Easy Admin")
+            ->setName("Demo Admin")
             ->setRoles(["ROLE_ADMIN"]);
-        $this->manager->persist($testAdmin);
+        $this->manager->persist($demoAdmin);
+        $this->demoAdmin = $demoAdmin;
 
         $this->manager->flush();
     }
 
     private function loadCustomers()
     {
+        foreach ($this->users as $user) {
+            for ($i = 0; $i < $this->customersCount; $i++) {
+                $customer = new Customer();
+                $customer->setName($this->faker->firstName);
+                $customer->setSurname($this->faker->lastName);
+                $customer->setEmail($this->faker->email);
+                $customer->setAddress($this->faker->address);
+                $customer->setUser($user);
+
+                $this->manager->persist($customer);
+            }
+        }
+        
+        // Demo user
         for ($i = 0; $i < $this->customersCount; $i++) {
             $customer = new Customer();
             $customer->setName($this->faker->firstName);
             $customer->setSurname($this->faker->lastName);
             $customer->setEmail($this->faker->email);
             $customer->setAddress($this->faker->address);
-            $customer->setUser($this->users[mt_rand(0, count($this->users) - 1)]);
+            $customer->setUser($this->demoUser);
 
             $this->manager->persist($customer);
         }
@@ -127,7 +151,6 @@ class AppFixtures extends Fixture
                 $updatedAt = clone $product->getCreatedAt();
                 $updatedAt->add($interval);
                 $product->setUpdatedAt($updatedAt);
-                $product->setContentChangedAt($updatedAt);
             }
             $this->manager->persist($product);
         }
