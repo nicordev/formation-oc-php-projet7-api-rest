@@ -41,9 +41,7 @@ class UserController extends AbstractFOSRestController
      *     path = "/api/users/{name}",
      *     name = "user_show_name"
      * )
-     * @View(
-     *     serializerGroups={"user_detail"}
-     * )
+     * @View()
      * @Cache(
      *     expires="00:10",
      *     lastModified="user.getUpdatedAt()",

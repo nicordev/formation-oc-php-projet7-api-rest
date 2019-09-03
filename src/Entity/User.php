@@ -9,9 +9,47 @@ use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "user_show_id",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "user_show_name",
+ *          parameters = { "name" = "expr(object.getName())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "user_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "user_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Serializer\ExclusionPolicy("ALL")
  */
 class User implements UserInterface
 {
@@ -20,9 +58,19 @@ class User implements UserInterface
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
-     * @Serializer\Groups({"user_detail"})
+     * @Serializer\Expose
      */
     private $id;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Serializer\Type("string")
+     * @Assert\NotBlank(
+     *     groups = {"user_create"}
+     * )
+     * @Serializer\Expose
+     */
+    private $name;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
@@ -30,14 +78,14 @@ class User implements UserInterface
      * @Assert\NotBlank(
      *     groups = {"user_create"}
      * )
-     * @Serializer\Groups({"user_detail"})
+     * @Serializer\Expose
      */
     private $email;
 
     /**
      * @ORM\Column(type="json")
      * @Serializer\Type("array")
-     * @Serializer\Groups({"user_detail"})
+     * @Serializer\Expose
      */
     private $roles = [];
 
@@ -50,16 +98,6 @@ class User implements UserInterface
      * )
      */
     private $password;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @Serializer\Type("string")
-     * @Assert\NotBlank(
-     *     groups = {"user_create"}
-     * )
-     * @Serializer\Groups({"user_detail"})
-     */
-    private $name;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Customer", mappedBy="user", orphanRemoval=true, cascade={"persist"})

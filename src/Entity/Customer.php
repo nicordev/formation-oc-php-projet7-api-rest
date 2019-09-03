@@ -19,6 +19,24 @@ use JMS\Serializer\Annotation as Serializer;
  *      ),
  *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "customer_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "customer_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
  * @Serializer\ExclusionPolicy("ALL")
  */
 class Customer
@@ -80,7 +98,6 @@ class Customer
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="customers", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
-     * @Serializer\Expose
      */
     private $user;
 

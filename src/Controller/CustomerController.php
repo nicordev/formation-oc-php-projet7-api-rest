@@ -37,9 +37,7 @@ class CustomerController extends AbstractFOSRestController
      *     name = "customer_show",
      *     requirements = {"id": "\d+"}
      * )
-     * @View(
-     *     serializerGroups = {"customer_detail"}
-     * )
+     * @View()
      * @Cache(
      *     expires="00:10",
      *     lastModified="customer.getUpdatedAt()",
