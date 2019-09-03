@@ -248,7 +248,7 @@ class UserControllerTest extends TestCase
         $this->assertInstanceOf(View::class, $response);
 
         $responseUser = $response->getData();
-        $modifiedUser->setPassword("encoded-password");
+        $modifiedUser->setPassword(null);
         $this->checkUser($modifiedUser, $responseUser, false);
     }
 
