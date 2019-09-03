@@ -114,7 +114,7 @@ class UserController extends AbstractFOSRestController
 
         $paginatedRepresentation = new PaginatedRepresentation(
             new CollectionRepresentation($users),
-            "product_list",
+            "user_list",
             [
                 "page" => $page,
                 "quantity" => $quantity

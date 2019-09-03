@@ -110,7 +110,7 @@ class CustomerController extends AbstractFOSRestController
         $customers = $paginatedCustomers[PaginatedRepository::KEY_PAGING_ENTITIES];
         $paginatedRepresentation = new PaginatedRepresentation(
             new CollectionRepresentation($customers),
-            "product_list",
+            "customer_list",
             [
                 "page" => $page,
                 "quantity" => $quantity
