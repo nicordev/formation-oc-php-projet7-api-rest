@@ -166,7 +166,7 @@ class ProductControllerTest extends TestCase
 
         $response = $controller->editProductAction($product, $modifiedProduct, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseProduct = $response->getData();

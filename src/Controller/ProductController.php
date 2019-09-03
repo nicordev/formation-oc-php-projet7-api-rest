@@ -216,7 +216,7 @@ class ProductController extends AbstractFOSRestController
      * @View()
      * @IsGranted("ROLE_ADMIN")
      * @SWG\Response(
-     *     response = 202,
+     *     response = 200,
      *     description = "Update a product (admin only)"
      * )
      */
@@ -240,7 +240,7 @@ class ProductController extends AbstractFOSRestController
 
         $manager->flush();
 
-        return $this->view($product, Response::HTTP_ACCEPTED);
+        return $this->view($product, Response::HTTP_OK);
     }
 
     /**

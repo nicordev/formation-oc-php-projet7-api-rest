@@ -189,7 +189,7 @@ class CustomerControllerTest extends TestCase
 
         $response = $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseCustomer = $response->getData();

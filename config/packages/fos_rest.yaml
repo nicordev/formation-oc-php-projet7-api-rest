@@ -12,7 +12,7 @@ fos_rest:
         rules:
             - { path: ^/, fallback_format: json, priorities: [json] }
     serializer:
-        serialize_null: true
+        serialize_null: false
     param_fetcher_listener: force
     view:
         view_response_listener: true

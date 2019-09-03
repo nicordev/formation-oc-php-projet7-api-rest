@@ -168,7 +168,7 @@ class CustomerController extends AbstractFOSRestController
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
      * @View()
      * @SWG\Response(
-     *     response = 202,
+     *     response = 200,
      *     description = "Update a customer of the current user"
      * )
      */
@@ -194,7 +194,7 @@ class CustomerController extends AbstractFOSRestController
 
         $manager->flush();
 
-        return $this->view($customer, Response::HTTP_ACCEPTED);
+        return $this->view($customer, Response::HTTP_OK);
     }
 
     /**

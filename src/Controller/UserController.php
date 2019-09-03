@@ -159,8 +159,12 @@ class UserController extends AbstractFOSRestController
 
         $encoded = $encoder->encodePassword($newUser, $newUser->getPassword());
         $newUser->setPassword($encoded);
+        if ($newUser->getRoles() === ["ROLE_USER"]) {
+            $newUser->setRoles(["ROLE_USER"]);
+        }
         $manager->persist($newUser);
         $manager->flush();
+        $newUser->setPassword(null);
 
         return $this->view($newUser, Response::HTTP_CREATED);
     }
@@ -178,7 +182,7 @@ class UserController extends AbstractFOSRestController
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
      * @View()
      * @SWG\Response(
-     *     response = 202,
+     *     response = 200,
      *     description = "Update the current user"
      * )
      */
@@ -205,8 +209,9 @@ class UserController extends AbstractFOSRestController
         }
 
         $manager->flush();
+        $user->setPassword(null);
 
-        return $this->view($user, Response::HTTP_ACCEPTED);
+        return $this->view($user, Response::HTTP_OK);
     }
 
     /**

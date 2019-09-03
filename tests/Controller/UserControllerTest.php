@@ -244,7 +244,7 @@ class UserControllerTest extends TestCase
 
         $response = $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseUser = $response->getData();

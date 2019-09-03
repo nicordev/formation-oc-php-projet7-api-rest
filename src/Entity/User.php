@@ -96,6 +96,7 @@ class User implements UserInterface
      * @Assert\NotBlank(
      *     groups = {"user_create"}
      * )
+     * @Serializer\Expose
      */
     private $password;
 
@@ -182,7 +183,7 @@ class User implements UserInterface
         return (string) $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(?string $password): self
     {
         $this->password = $password;
 
