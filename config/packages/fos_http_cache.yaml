@@ -1,0 +1,19 @@
+fos_http_cache:
+    proxy_client:
+        default: symfony
+        symfony:
+            tags_header: My-Cache-Tags
+            tags_method: TAGPURGE
+            header_length: 1234
+            purge_method: PURGE
+            # for single server installations:
+            # use_kernel_dispatcher: true
+            http:
+                servers:
+                    - 127.0.0.1:8000
+                base_url: bilemo.local
+    user_context:
+        enabled: true
+        user_identifier_headers:
+            - Authorization
+        hash_cache_ttl: 900

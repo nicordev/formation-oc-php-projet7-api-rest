@@ -4,6 +4,7 @@ use App\CacheKernel;
 use App\Kernel;
 use Symfony\Component\Debug\Debug;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
 require dirname(__DIR__).'/config/bootstrap.php';
 
@@ -24,7 +25,7 @@ if ($trustedHosts = $_SERVER['TRUSTED_HOSTS'] ?? $_ENV['TRUSTED_HOSTS'] ?? false
 $kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
 // Wrap the default Kernel with the CacheKernel one in 'prod' environment
 if ('prod' === $kernel->getEnvironment()) {
-    $kernel = new CacheKernel($kernel);
+    $kernel = new CacheKernel($kernel, new Store(dirname(__DIR__)));
 }
 
 $request = Request::createFromGlobals();

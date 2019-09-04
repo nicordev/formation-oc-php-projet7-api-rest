@@ -43,7 +43,6 @@ class ProductController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     public=true,
      *     expires="00:10",
      *     lastModified="product.getUpdatedAt()",
      *     Etag="'Product' ~ product.getId() ~ product.getUpdatedAt().getTimestamp()"
