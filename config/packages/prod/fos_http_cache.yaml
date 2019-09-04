@@ -18,3 +18,16 @@ fos_http_cache:
         user_identifier_headers:
             - Authorization
         hash_cache_ttl: 900
+    cache_control:
+        defaults:
+            overwrite: true
+        rules:
+            - match:
+                    path: ^/
+              headers:
+                    cache_control:
+                        no_cache: false
+                        no_store: false
+                        public: true
+                        max_age: 17
+                        s_maxage: 32
