@@ -43,7 +43,7 @@ class UserController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     expires="00:10",
+     *     expires = "+10 minutes",
      *     lastModified="user.getUpdatedAt()",
      *     Etag="'User' ~ user.getId() ~ user.getUpdatedAt().getTimestamp()"
      * )
@@ -80,7 +80,7 @@ class UserController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     expires="00:10"
+     *     expires = "+10 minutes"
      * )
      * @SWG\Response(
      *     response = 200,

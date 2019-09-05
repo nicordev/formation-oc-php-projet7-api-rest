@@ -39,9 +39,9 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     expires="00:10",
-     *     lastModified="customer.getUpdatedAt()",
-     *     Etag="'Customer' ~ customer.getId() ~ customer.getUpdatedAt().getTimestamp()"
+     *     expires = "+10 minutes",
+     *     lastModified = "customer.getUpdatedAt()",
+     *     Etag = "'User' ~ customer.getUser().getId() ~ 'Customer' ~ customer.getId() ~ customer.getUpdatedAt().getTimestamp()"
      * )
      * @SWG\Response(
      *     response = 200,
@@ -76,7 +76,7 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     expires="00:10"
+     *     expires = "+10 minutes"
      * )
      * @SWG\Response(
      *     response = 200,

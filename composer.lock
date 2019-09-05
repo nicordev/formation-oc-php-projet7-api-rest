@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8a9eab92a89e6e266b1155512562b601",
+    "content-hash": "e1ff606069c129d3f616bcbe70217f48",
     "packages": [
         {
             "name": "behat/transliterator",
@@ -3948,16 +3948,16 @@
         },
         {
             "name": "symfony/cache",
-            "version": "v4.3.3",
+            "version": "v4.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/cache.git",
-                "reference": "d263af3cec33afa862310e58545fdc10d779806f"
+                "reference": "1d8f7fee990c586f275cde1a9fc883d6b1e2d43e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/cache/zipball/d263af3cec33afa862310e58545fdc10d779806f",
-                "reference": "d263af3cec33afa862310e58545fdc10d779806f",
+                "url": "https://api.github.com/repos/symfony/cache/zipball/1d8f7fee990c586f275cde1a9fc883d6b1e2d43e",
+                "reference": "1d8f7fee990c586f275cde1a9fc883d6b1e2d43e",
                 "shasum": ""
             },
             "require": {
@@ -4022,7 +4022,7 @@
                 "caching",
                 "psr6"
             ],
-            "time": "2019-06-28T13:16:30+00:00"
+            "time": "2019-08-26T08:26:39+00:00"
         },
         {
             "name": "symfony/cache-contracts",

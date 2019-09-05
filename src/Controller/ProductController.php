@@ -43,9 +43,10 @@ class ProductController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     expires="00:10",
-     *     lastModified="product.getUpdatedAt()",
-     *     Etag="'Product' ~ product.getId() ~ product.getUpdatedAt().getTimestamp()"
+     *     public = true,
+     *     expires = "+10 minutes",
+     *     lastModified = "product.getUpdatedAt()",
+     *     Etag = "'Product' ~ product.getId() ~ product.getUpdatedAt().getTimestamp()"
      * )
      * @SWG\Response(
      *     response = 200,
@@ -101,8 +102,9 @@ class ProductController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     expires="00:10"
-     * )
+     *     public = true,
+     *     expires = "+10 minutes"
+     * ) // Etag header set in the method
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
@@ -166,7 +168,18 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-        return $this->view($paginatedRepresentation, Response::HTTP_OK);
+        $headers = [
+            'Etag' => implode("|", [
+                $property,
+                $order,
+                $search,
+                $exact,
+                $page,
+                $quantity
+            ])
+        ];
+
+        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
     }
 
     /**
