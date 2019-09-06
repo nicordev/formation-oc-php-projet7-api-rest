@@ -104,7 +104,7 @@ class ProductController extends AbstractFOSRestController
      * @Cache(
      *     public = true,
      *     expires = "+10 minutes"
-     * ) // Etag header set in the method
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
@@ -168,18 +168,7 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-        $headers = [
-            'Etag' => implode("|", [
-                $property,
-                $order,
-                $search,
-                $exact,
-                $page,
-                $quantity
-            ])
-        ];
-
-        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
