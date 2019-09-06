@@ -24,6 +24,8 @@ use FOS\RestBundle\Controller\Annotations\View;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Swagger\Annotations as SWG;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductController extends AbstractFOSRestController
 {
@@ -101,10 +103,6 @@ class ProductController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
-     * @Cache(
-     *     public = true,
-     *     expires = "+10 minutes"
-     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
@@ -117,8 +115,28 @@ class ProductController extends AbstractFOSRestController
         ?string $search,
         string $exact,
         int $page,
-        int $quantity
+        int $quantity,
+        TagAwareCacheInterface $productCache
     ) {
+        // Check product.cache pool
+        $cacheKey = "product_list|" . implode("|", [
+            $property,
+            $order,
+            $search,
+            $exact,
+            $page,
+            $quantity
+        ]);
+        /**
+         * @var ItemInterface $cachedResponse
+         */
+        $cachedResponse = $productCache->getItem($cacheKey);
+
+        if ($cachedResponse->isHit()) {
+            return $cachedResponse->get();
+        }
+
+        // Build the response
         if (!empty($search)) {
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
@@ -168,7 +186,15 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-        return $this->view($paginatedRepresentation, Response::HTTP_OK);
+        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
+        $response = $this->handleView($view);
+        $response->setPublic();
+
+        // Cache
+        $cachedResponse->set($response);
+        $cachedResponse->tag("product_list");
+
+        return $response;
     }
 
     /**
