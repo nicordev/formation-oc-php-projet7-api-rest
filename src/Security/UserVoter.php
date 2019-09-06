@@ -65,12 +65,19 @@ class UserVoter extends Voter
         $currentUser = $token->getUser();
         $requestedUser = $subject;
 
+        // the current user must be logged in; if not, deny access
         if (!$currentUser instanceof User) {
-            // the current user must be logged in; if not, deny access
+
             return false;
         }
 
-        if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE]) && $requestedUser instanceof User) {
+        // The subject must be a User
+        if (!$requestedUser instanceof User) {
+
+            return false;
+        }
+
+        if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE])) {
             // The current user must be the same as the requested user or must be an admin
             if ($currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
                 return true;
