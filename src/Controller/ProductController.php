@@ -31,6 +31,8 @@ class ProductController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
+    public const TAG_CACHE_LIST = "product_list";
+
     /**
      * Consult the detail of a particular phone
      *
@@ -192,7 +194,7 @@ class ProductController extends AbstractFOSRestController
         // Cache
         $response->setPublic();
         $cachedResponse->set($response);
-        $cachedResponse->tag("product_list");
+        $cachedResponse->tag(self::TAG_CACHE_LIST);
         $productCache->save($cachedResponse);
 
         return $response;
@@ -222,12 +224,15 @@ class ProductController extends AbstractFOSRestController
     public function createProductAction(
         Product $newProduct,
         EntityManagerInterface $manager,
-        ConstraintViolationListInterface $violations
+        ConstraintViolationListInterface $violations,
+        TagAwareCacheInterface $productCache
     ) {
         $this->handleViolations($violations);
 
         $manager->persist($newProduct);
         $manager->flush();
+        // Cache
+        $productCache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newProduct, Response::HTTP_CREATED);
     }
@@ -251,7 +256,8 @@ class ProductController extends AbstractFOSRestController
     public function editProductAction(
         Product $product,
         Product $modifiedProduct,
-        EntityManagerInterface $manager
+        EntityManagerInterface $manager,
+        TagAwareCacheInterface $productCache
     ) {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
@@ -267,6 +273,8 @@ class ProductController extends AbstractFOSRestController
         }
 
         $manager->flush();
+        // Cache
+        $productCache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($product, Response::HTTP_OK);
     }
@@ -285,10 +293,16 @@ class ProductController extends AbstractFOSRestController
      *     description = "Delete a product (admin only)"
      * )
      */
-    public function deleteProductAction(Product $product, EntityManagerInterface $manager)
+    public function deleteProductAction(
+        Product $product,
+        EntityManagerInterface $manager,
+        TagAwareCacheInterface $productCache
+    )
     {
         $manager->remove($product);
         $manager->flush();
+        // Cache
+        $productCache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return  $this->view(null, Response::HTTP_OK);
     }
