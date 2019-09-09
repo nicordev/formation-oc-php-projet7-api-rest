@@ -39,7 +39,6 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @View()
      * @Cache(
-     *     public = true,
      *     expires = "+10 minutes",
      *     lastModified = "customer.getUpdatedAt()",
      *     Etag = "'User' ~ customer.getUser().getId() ~ 'Customer' ~ customer.getId() ~ customer.getUpdatedAt().getTimestamp()"

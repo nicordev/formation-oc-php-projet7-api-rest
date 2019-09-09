@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Exception\ResourceValidationException;
-use App\Helper\CacheTrait;
+use App\Helper\CacheTool;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,15 +25,14 @@ use FOS\RestBundle\Controller\Annotations\View;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Swagger\Annotations as SWG;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductController extends AbstractFOSRestController
 {
     use ViolationsTrait;
-    use CacheTrait;
 
     public const TAG_CACHE_LIST = "product_list";
+    public const CACHE_EXPIRATION = "+10 minutes";
 
     /**
      * Consult the detail of a particular phone
@@ -119,10 +118,10 @@ class ProductController extends AbstractFOSRestController
         string $exact,
         int $page,
         int $quantity,
-        TagAwareCacheInterface $productCache
+        CacheTool $cache
     ) {
         // Check product.cache pool
-        $cacheItemKey = $this->makeItemKey(
+        $cacheItemKey = $cache->makeItemKey(
             [
                 $property,
                 $order,
@@ -135,7 +134,7 @@ class ProductController extends AbstractFOSRestController
             self::TAG_CACHE_LIST
         );
 
-        if ($cachedResponse = $this->getContentFromCache($productCache, $cacheItemKey)) {
+        if ($cachedResponse = $cache->getContentFromCache($cacheItemKey)) {
             return $cachedResponse;
         }
 
@@ -147,11 +146,11 @@ class ProductController extends AbstractFOSRestController
                 $view = $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
                 $response = $this->handleView($view);
                 // Cache
-                $this->saveResponseInCache(
-                    $productCache,
+                $cache->saveResponseInCache(
                     $cacheItemKey,
                     $response,
                     [self::TAG_CACHE_LIST],
+                    new \DateTime("+10 minutes"),
                     true
                 );
 
@@ -180,11 +179,11 @@ class ProductController extends AbstractFOSRestController
             $view = $this->view(null, Response::HTTP_NO_CONTENT);
             $response = $this->handleView($view);
             // Cache
-            $this->saveResponseInCache(
-                $productCache,
+            $cache->saveResponseInCache(
                 $cacheItemKey,
                 $response,
                 [self::TAG_CACHE_LIST],
+                new \DateTime("+10 minutes"),
                 true
             );
 
@@ -214,11 +213,11 @@ class ProductController extends AbstractFOSRestController
         $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
         $response = $this->handleView($view);
         // Cache
-        $this->saveResponseInCache(
-            $productCache,
+        $cache->saveResponseInCache(
             $cacheItemKey,
             $response,
             [self::TAG_CACHE_LIST],
+            new \DateTime("+10 minutes"),
             true
         );
 
@@ -250,14 +249,14 @@ class ProductController extends AbstractFOSRestController
         Product $newProduct,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
-        TagAwareCacheInterface $productCache
+        CacheTool $cache
     ) {
         $this->handleViolations($violations);
 
         $manager->persist($newProduct);
         $manager->flush();
         // Cache
-        $productCache->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newProduct, Response::HTTP_CREATED);
     }
@@ -282,7 +281,7 @@ class ProductController extends AbstractFOSRestController
         Product $product,
         Product $modifiedProduct,
         EntityManagerInterface $manager,
-        TagAwareCacheInterface $productCache
+        CacheTool $cache
     ) {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
@@ -299,7 +298,7 @@ class ProductController extends AbstractFOSRestController
 
         $manager->flush();
         // Cache
-        $productCache->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($product, Response::HTTP_OK);
     }
@@ -321,13 +320,13 @@ class ProductController extends AbstractFOSRestController
     public function deleteProductAction(
         Product $product,
         EntityManagerInterface $manager,
-        TagAwareCacheInterface $productCache
+        CacheTool $cache
     )
     {
         $manager->remove($product);
         $manager->flush();
         // Cache
-        $productCache->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return  $this->view(null, Response::HTTP_OK);
     }
