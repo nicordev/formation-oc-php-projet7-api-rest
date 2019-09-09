@@ -14,8 +14,10 @@ use FOS\RestBundle\View\ViewHandler;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductControllerTest extends TestCase
 {
@@ -93,6 +95,11 @@ class ProductControllerTest extends TestCase
             PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
         ])
         ->shouldBeCalled();
+        $cache = $this->createMock(TagAwareCacheInterface::class);
+        $cache->method("getItem")
+            ->with($this->equalTo(ProductController::TAG_CACHE_LIST))
+            ->willReturn(new CacheItem())
+        ;
 
         $response = $controller->getProductsAction(
             $repository->reveal(),
@@ -101,7 +108,8 @@ class ProductControllerTest extends TestCase
             $search,
             $exact,
             $page,
-            $quantity
+            $quantity,
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -131,8 +139,18 @@ class ProductControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
+        $cache = $this->createMock(TagAwareCacheInterface::class);
+        $cache->expects($this->once())
+            ->method("invalidateTags")
+            ->with([ProductController::TAG_CACHE_LIST])
+        ;
 
-        $response = $controller->createProductAction($product, $manager->reveal(), $violations);
+        $response = $controller->createProductAction(
+            $product,
+            $manager->reveal(),
+            $violations,
+            $cache
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -163,8 +181,18 @@ class ProductControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
+        $cache = $this->createMock(TagAwareCacheInterface::class);
+        $cache->expects($this->once())
+            ->method("invalidateTags")
+            ->with([ProductController::TAG_CACHE_LIST])
+        ;
 
-        $response = $controller->editProductAction($product, $modifiedProduct, $manager);
+        $response = $controller->editProductAction(
+            $product,
+            $modifiedProduct,
+            $manager,
+            $cache
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -182,9 +210,18 @@ class ProductControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
+        $cache = $this->createMock(TagAwareCacheInterface::class);
+        $cache->expects($this->once())
+            ->method("invalidateTags")
+            ->with([ProductController::TAG_CACHE_LIST])
+        ;
         $controller = $this->createProductController();
 
-        $response = $controller->deleteProductAction($product, $manager->reveal());
+        $response = $controller->deleteProductAction(
+            $product,
+            $manager->reveal(),
+            $cache
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);

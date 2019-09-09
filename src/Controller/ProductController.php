@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Exception\ResourceValidationException;
+use App\Helper\CacheTrait;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,6 +31,7 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class ProductController extends AbstractFOSRestController
 {
     use ViolationsTrait;
+    use CacheTrait;
 
     public const TAG_CACHE_LIST = "product_list";
 
@@ -104,7 +106,6 @@ class ProductController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
-     * @View()
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
@@ -121,21 +122,21 @@ class ProductController extends AbstractFOSRestController
         TagAwareCacheInterface $productCache
     ) {
         // Check product.cache pool
-        $cacheKey = "product_list|" . implode("|", [
-            $property,
-            $order,
-            $search,
-            $exact,
-            $page,
-            $quantity
-        ]);
-        /**
-         * @var ItemInterface $cachedResponse
-         */
-        $cachedResponse = $productCache->getItem($cacheKey);
+        $cacheItemKey = $this->makeItemKey(
+            [
+                $property,
+                $order,
+                $search,
+                $exact,
+                $page,
+                $quantity
+            ],
+            "|",
+            self::TAG_CACHE_LIST
+        );
 
-        if ($cachedResponse->isHit()) {
-            return $cachedResponse->get();
+        if ($cachedResponse = $this->getContentFromCache($productCache, $cacheItemKey)) {
+            return $cachedResponse;
         }
 
         // Build the response
@@ -192,10 +193,13 @@ class ProductController extends AbstractFOSRestController
         $response = $this->handleView($view);
 
         // Cache
-        $response->setPublic();
-        $cachedResponse->set($response);
-        $cachedResponse->tag(self::TAG_CACHE_LIST);
-        $productCache->save($cachedResponse);
+        $this->saveResponseInCache(
+            $productCache,
+            $cacheItemKey,
+            $response,
+            [self::TAG_CACHE_LIST],
+            true
+        );
 
         return $response;
     }
