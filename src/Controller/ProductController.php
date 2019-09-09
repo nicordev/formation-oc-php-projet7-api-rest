@@ -188,11 +188,12 @@ class ProductController extends AbstractFOSRestController
 
         $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
         $response = $this->handleView($view);
-        $response->setPublic();
 
         // Cache
+        $response->setPublic();
         $cachedResponse->set($response);
         $cachedResponse->tag("product_list");
+        $productCache->save($cachedResponse);
 
         return $response;
     }
