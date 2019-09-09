@@ -144,7 +144,18 @@ class ProductController extends AbstractFOSRestController
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
             } else {
-                return $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
+                $view = $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
+                $response = $this->handleView($view);
+                // Cache
+                $this->saveResponseInCache(
+                    $productCache,
+                    $cacheItemKey,
+                    $response,
+                    [self::TAG_CACHE_LIST],
+                    true
+                );
+
+                return $response;
             }
         }
 
@@ -166,7 +177,18 @@ class ProductController extends AbstractFOSRestController
         );
 
         if (!$paginatedProducts) {
-            return $this->view(null, Response::HTTP_NO_CONTENT);
+            $view = $this->view(null, Response::HTTP_NO_CONTENT);
+            $response = $this->handleView($view);
+            // Cache
+            $this->saveResponseInCache(
+                $productCache,
+                $cacheItemKey,
+                $response,
+                [self::TAG_CACHE_LIST],
+                true
+            );
+
+            return $response;
         }
 
         $paginatedRepresentation = new PaginatedRepresentation(
@@ -191,7 +213,6 @@ class ProductController extends AbstractFOSRestController
 
         $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
         $response = $this->handleView($view);
-
         // Cache
         $this->saveResponseInCache(
             $productCache,
