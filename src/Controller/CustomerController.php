@@ -38,11 +38,6 @@ class CustomerController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @View()
-     * @Cache(
-     *     expires = "+10 minutes",
-     *     lastModified = "customer.getUpdatedAt()",
-     *     Etag = "'User' ~ customer.getUser().getId() ~ 'Customer' ~ customer.getId() ~ customer.getUpdatedAt().getTimestamp()"
-     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a customer"

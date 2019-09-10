@@ -26,20 +26,22 @@ class HttpCacheListener
     /**
      * @var string
      */
-    private $requestKey;
+    private $cacheItemKey;
     /**
-     * @var string
+     * @var array
      */
-    private $requestRoute;
+    private $privateRoutes;
 
     public function __construct(
         RouterInterface $router,
         CacheTool $cacheTool,
-        CacheKeyGenerator $keyGenerator
+        CacheKeyGenerator $keyGenerator,
+        string $projectDirectory
     ) {
         $this->router = $router;
         $this->cacheTool = $cacheTool;
         $this->keyGenerator = $keyGenerator;
+        $this->privateRoutes = require "$projectDirectory/config/http_cache/private_routes.php";
     }
 
     /**
@@ -51,8 +53,11 @@ class HttpCacheListener
     public function onKernelRequest(RequestEvent $event)
     {
         $request = $event->getRequest();
-        $this->requestKey = $this->keyGenerator->generateKey($request);
-        $cachedResponse = $this->cacheTool->getContentFromCache($this->requestKey);
+        $this->cacheItemKey = $this->keyGenerator->generateKeyFromRequest(
+            $request,
+            $this->privateRoutes
+        );
+        $cachedResponse = $this->cacheTool->getContentFromCache($this->cacheItemKey);
 
         if ($cachedResponse) {
             $event->stopPropagation();
@@ -65,14 +70,23 @@ class HttpCacheListener
      * Save the response in the cache
      *
      * @param ResponseEvent $event
+     * @throws \Exception
      */
     public function onKernelResponse(ResponseEvent $event)
     {
         $response = $event->getResponse();
-        $this->cacheTool->saveResponseInCache(
-            $this->requestKey,
-            $response,
 
+        $this->cacheTool->configureResponse(
+            $response,
+            new \DateTime("+1 hour"),
+            null,
+            new \DateTime(),
+            true
+        );
+
+        $this->cacheTool->saveResponseInCache(
+            $this->cacheItemKey,
+            $response
         );
     }
 }

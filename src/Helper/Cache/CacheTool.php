@@ -41,28 +41,48 @@ class CacheTool
      * @param string $itemKey
      * @param Response $response
      * @param array $tags |null
-     * @param \DateTimeInterface|null $expires
-     * @param bool $public
      */
     public function saveResponseInCache(
         string $itemKey,
         Response $response,
-        ?array $tags = null,
-        ?\DateTimeInterface $expires = null,
-        bool $public = true
+        ?array $tags = null
     ) {
-        if ($public) {
-            $response->setPublic();
-        }
-        if ($expires) {
-            $response->setExpires($expires);
-        }
         $cachedResponse = $this->cache->getItem($itemKey);
         $cachedResponse->set($response);
         if ($tags) {
             $cachedResponse->tag($tags);
         }
         $this->cache->save($cachedResponse);
+    }
+
+    /**
+     * Add some cache relative headers to the response
+     *
+     * @param Response $response
+     * @param \DateTimeInterface|null $expires
+     * @param string|null $etag
+     * @param \DateTimeInterface|null $lastModified
+     * @param bool $public
+     */
+    public function configureResponse(
+        Response $response,
+        ?\DateTimeInterface $expires = null,
+        ?string $etag = null,
+        ?\DateTimeInterface $lastModified = null,
+        bool $public = true
+    ) {
+        if ($expires) {
+            $response->setExpires($expires);
+        }
+        if ($etag) {
+            $response->setEtag($etag);
+        }
+        if ($lastModified) {
+            $response->setLastModified($lastModified);
+        }
+        if ($public) {
+            $response->setPublic();
+        }
     }
 
     /**

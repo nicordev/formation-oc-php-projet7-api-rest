@@ -145,13 +145,13 @@ class ProductController extends AbstractFOSRestController
                 $view = $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
                 $response = $this->handleView($view);
                 // Cache
-                $cache->saveResponseInCache(
-                    $cacheItemKey,
-                    $response,
-                    [self::TAG_CACHE_LIST],
-                    new \DateTime("+10 minutes"),
-                    true
-                );
+//                $cache->saveResponseInCache(
+//                    $cacheItemKey,
+//                    $response,
+//                    [self::TAG_CACHE_LIST],
+//                    new \DateTime("+10 minutes"),
+//                    true
+//                );
 
                 return $response;
             }
@@ -178,13 +178,13 @@ class ProductController extends AbstractFOSRestController
             $view = $this->view(null, Response::HTTP_NO_CONTENT);
             $response = $this->handleView($view);
             // Cache
-            $cache->saveResponseInCache(
-                $cacheItemKey,
-                $response,
-                [self::TAG_CACHE_LIST],
-                new \DateTime("+10 minutes"),
-                true
-            );
+//            $cache->saveResponseInCache(
+//                $cacheItemKey,
+//                $response,
+//                [self::TAG_CACHE_LIST],
+//                new \DateTime("+10 minutes"),
+//                true
+//            );
 
             return $response;
         }
