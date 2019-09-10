@@ -31,7 +31,14 @@ class HttpCacheListener
      * @var array
      */
     private $privateRoutes;
-    private $foundCachedResponse = false;
+    /**
+     * @var array
+     */
+    private $routesToCache;
+    /**
+     * @var bool
+     */
+    private $canBeCached = true;
 
     public function __construct(
         RouterInterface $router,
@@ -43,6 +50,7 @@ class HttpCacheListener
         $this->cacheTool = $cacheTool;
         $this->keyGenerator = $keyGenerator;
         $this->privateRoutes = require "$projectDirectory/config/http_cache/private_routes.php";
+        $this->routesToCache = require "$projectDirectory/config/http_cache/routes_to_cache.php";
     }
 
     /**
@@ -56,14 +64,20 @@ class HttpCacheListener
         $request = $event->getRequest();
         $this->cacheItemKey = $this->keyGenerator->generateKeyFromRequest(
             $request,
-            $this->privateRoutes
+            $this->privateRoutes,
+            $route
         );
-        $cachedResponse = $this->cacheTool->getContentFromCache($this->cacheItemKey);
 
-        if ($cachedResponse) {
-            $event->stopPropagation();
-            $this->foundCachedResponse = true;
+        if (!in_array($route, $this->routesToCache)) {
+            $this->canBeCached = false;
+            return;
+        }
 
+        $cachedItem = $this->cacheTool->getItemFromCache($this->cacheItemKey);
+
+        if ($cachedItem) {
+            $cachedResponse = $cachedItem->get();
+            $this->canBeCached = false;
             return $cachedResponse;
         }
     }
@@ -76,12 +90,12 @@ class HttpCacheListener
      */
     public function onKernelResponse(ResponseEvent $event)
     {
-        if (!$this->foundCachedResponse) {
+        if ($this->canBeCached) {
             $response = $event->getResponse();
 
             $this->cacheTool->configureResponse(
                 $response,
-                new \DateTime("+1 hour"),
+                new \DateTime("+1 minute"),
                 null,
                 new \DateTime(),
                 true

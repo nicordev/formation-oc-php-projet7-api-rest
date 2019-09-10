@@ -24,12 +24,12 @@ class CacheTool
      * @param string $itemKey
      * @return bool
      */
-    public function getContentFromCache(string $itemKey)
+    public function getItemFromCache(string $itemKey)
     {
         $item = $this->cache->getItem($itemKey);
 
         if ($item->isHit()) {
-            return $item->get();
+            return $item;
         }
 
         return false;
@@ -49,9 +49,15 @@ class CacheTool
     ) {
         $cachedResponse = $this->cache->getItem($itemKey);
         $cachedResponse->set($response);
+
+        if ($expires = $response->getExpires()) {
+            $cachedResponse->expiresAt($expires);
+        }
+
         if ($tags) {
             $cachedResponse->tag($tags);
         }
+
         $this->cache->save($cachedResponse);
     }
 
