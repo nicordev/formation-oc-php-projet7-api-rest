@@ -96,14 +96,6 @@ class ProductControllerTest extends TestCase
             PaginatedRepository::KEY_PAGING_PREVIOUS_PAGE => 1
         ])
         ->shouldBeCalled();
-        $cache = $this->createMock(CacheTool::class);
-        $cache->expects($this->once())
-            ->method("makeItemKey")
-            ->willReturn("test_cache_key")
-        ;
-        $cache->method("getContentFromCache")
-            ->willReturn(false)
-        ;
 
         $response = $controller->getProductsAction(
             $repository->reveal(),
@@ -112,29 +104,25 @@ class ProductControllerTest extends TestCase
             $search,
             $exact,
             $page,
-            $quantity,
-            $cache
+            $quantity
         );
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertInstanceOf(Response::class, $response);
-        /**
-         * TODO: Figure out how to test if the response is well built despite the mocked ViewHandler
-         */
-//        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-//        $responseContent = $response->getContent();
-//        $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
-//        $inline = $responseContent->getInline();
-//        $this->assertInstanceOf(CollectionRepresentation::class, $inline);
-//        $resources = $inline->getResources();
-//        $this->assertEquals($productsCount, count($resources));
-//
-//        for ($i = 0; $i < $productsCount; $i++) {
-//            $this->assertInstanceOf(Product::class, $resources[$i]);
-//            $this->assertEquals("p$i", $resources[$i]->getModel());
-//            $this->assertEquals("b$i", $resources[$i]->getBrand());
-//            $this->assertEquals($i * 10, $resources[$i]->getPrice());
-//            $this->assertEquals($i * 10, $resources[$i]->getQuantity());
-//        }
+        $this->assertInstanceOf(View::class, $response);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $responseContent = $response->getData();
+        $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
+        $inline = $responseContent->getInline();
+        $this->assertInstanceOf(CollectionRepresentation::class, $inline);
+        $resources = $inline->getResources();
+        $this->assertEquals($productsCount, count($resources));
+
+        for ($i = 0; $i < $productsCount; $i++) {
+            $this->assertInstanceOf(Product::class, $resources[$i]);
+            $this->assertEquals("p$i", $resources[$i]->getModel());
+            $this->assertEquals("b$i", $resources[$i]->getBrand());
+            $this->assertEquals($i * 10, $resources[$i]->getPrice());
+            $this->assertEquals($i * 10, $resources[$i]->getQuantity());
+        }
     }
 
     public function testCreateProductAction()
@@ -145,17 +133,11 @@ class ProductControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $cache = $this->createMock(CacheTool::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([ProductController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->createProductAction(
             $product,
             $manager->reveal(),
-            $violations,
-            $cache
+            $violations
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -187,17 +169,11 @@ class ProductControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
-        $cache = $this->createMock(CacheTool::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([ProductController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->editProductAction(
             $product,
             $modifiedProduct,
-            $manager,
-            $cache
+            $manager
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -216,17 +192,11 @@ class ProductControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $cache = $this->createMock(CacheTool::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([ProductController::TAG_CACHE_LIST])
-        ;
         $controller = $this->createProductController();
 
         $response = $controller->deleteProductAction(
             $product,
-            $manager->reveal(),
-            $cache
+            $manager->reveal()
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());

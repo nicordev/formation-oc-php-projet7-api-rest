@@ -102,7 +102,7 @@ class HttpCacheListener
             );
 
             $this->cacheTool->saveResponseInCache(
-                $this->cacheItemKey,
+                $this->cacheItemKey ?? "no_key",
                 $response
             );
         }

@@ -105,6 +105,7 @@ class ProductController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
+     * @View()
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
@@ -119,41 +120,11 @@ class ProductController extends AbstractFOSRestController
         int $page,
         int $quantity
     ) {
-        // Check product.cache pool
-//        $cacheItemKey = $cache->makeItemKey(
-//            [
-//                $property,
-//                $order,
-//                $search,
-//                $exact,
-//                $page,
-//                $quantity
-//            ],
-//            "|",
-//            self::TAG_CACHE_LIST
-//        );
-//
-//        if ($cachedResponse = $cache->getContentFromCache($cacheItemKey)) {
-//            return $cachedResponse;
-//        }
-
-        // Build the response
         if (!empty($search)) {
             if (in_array($property, ["brand", "model"])) {
                 $criteria = [$property => $search];
             } else {
-                $view = $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
-                $response = $this->handleView($view);
-                // Cache
-//                $cache->saveResponseInCache(
-//                    $cacheItemKey,
-//                    $response,
-//                    [self::TAG_CACHE_LIST],
-//                    new \DateTime("+10 minutes"),
-//                    true
-//                );
-
-                return $response;
+                return $this->view("Can not use search parameter, the property is either missing or wrong.", Response::HTTP_NOT_ACCEPTABLE);
             }
         }
 
@@ -175,18 +146,7 @@ class ProductController extends AbstractFOSRestController
         );
 
         if (!$paginatedProducts) {
-            $view = $this->view(null, Response::HTTP_NO_CONTENT);
-            $response = $this->handleView($view);
-            // Cache
-//            $cache->saveResponseInCache(
-//                $cacheItemKey,
-//                $response,
-//                [self::TAG_CACHE_LIST],
-//                new \DateTime("+10 minutes"),
-//                true
-//            );
-
-            return $response;
+            return $this->view(null, Response::HTTP_NO_CONTENT);
         }
 
         $paginatedRepresentation = new PaginatedRepresentation(
@@ -209,18 +169,7 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-        $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
-        $response = $this->handleView($view);
-        // Cache
-//        $cache->saveResponseInCache(
-//            $cacheItemKey,
-//            $response,
-//            [self::TAG_CACHE_LIST],
-//            new \DateTime("+10 minutes"),
-//            true
-//        );
-
-        return $response;
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**

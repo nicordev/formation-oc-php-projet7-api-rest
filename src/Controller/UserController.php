@@ -79,9 +79,6 @@ class UserController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
-     * @Cache(
-     *     expires = "+10 minutes"
-     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all users (admin only)"
