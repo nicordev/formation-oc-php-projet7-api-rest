@@ -31,6 +31,7 @@ class HttpCacheListener
      * @var array
      */
     private $privateRoutes;
+    private $foundCachedResponse = false;
 
     public function __construct(
         RouterInterface $router,
@@ -61,6 +62,7 @@ class HttpCacheListener
 
         if ($cachedResponse) {
             $event->stopPropagation();
+            $this->foundCachedResponse = true;
 
             return $cachedResponse;
         }
@@ -74,19 +76,21 @@ class HttpCacheListener
      */
     public function onKernelResponse(ResponseEvent $event)
     {
-        $response = $event->getResponse();
+        if (!$this->foundCachedResponse) {
+            $response = $event->getResponse();
 
-        $this->cacheTool->configureResponse(
-            $response,
-            new \DateTime("+1 hour"),
-            null,
-            new \DateTime(),
-            true
-        );
+            $this->cacheTool->configureResponse(
+                $response,
+                new \DateTime("+1 hour"),
+                null,
+                new \DateTime(),
+                true
+            );
 
-        $this->cacheTool->saveResponseInCache(
-            $this->cacheItemKey,
-            $response
-        );
+            $this->cacheTool->saveResponseInCache(
+                $this->cacheItemKey,
+                $response
+            );
+        }
     }
 }
