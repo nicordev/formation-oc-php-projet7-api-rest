@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helper;
+namespace App\Helper\Cache;
 
 
 use Symfony\Component\HttpFoundation\Response;
@@ -74,19 +74,5 @@ class CacheTool
     public function invalidateTags(array $tags)
     {
         $this->cache->invalidateTags($tags);
-    }
-
-    /**
-     * Create a key string to use with cache items
-     *
-     * @param array $parts
-     * @param string $glue
-     * @param string $prefix
-     * @return string
-     */
-    public function makeItemKey(array $parts, string $glue = "", string $prefix = "")
-    {
-        $keyParts = array_merge([$prefix], $parts);
-        return implode($glue, $keyParts);
     }
 }

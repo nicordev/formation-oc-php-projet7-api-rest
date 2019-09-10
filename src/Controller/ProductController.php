@@ -117,26 +117,25 @@ class ProductController extends AbstractFOSRestController
         ?string $search,
         string $exact,
         int $page,
-        int $quantity,
-        CacheTool $cache
+        int $quantity
     ) {
         // Check product.cache pool
-        $cacheItemKey = $cache->makeItemKey(
-            [
-                $property,
-                $order,
-                $search,
-                $exact,
-                $page,
-                $quantity
-            ],
-            "|",
-            self::TAG_CACHE_LIST
-        );
-
-        if ($cachedResponse = $cache->getContentFromCache($cacheItemKey)) {
-            return $cachedResponse;
-        }
+//        $cacheItemKey = $cache->makeItemKey(
+//            [
+//                $property,
+//                $order,
+//                $search,
+//                $exact,
+//                $page,
+//                $quantity
+//            ],
+//            "|",
+//            self::TAG_CACHE_LIST
+//        );
+//
+//        if ($cachedResponse = $cache->getContentFromCache($cacheItemKey)) {
+//            return $cachedResponse;
+//        }
 
         // Build the response
         if (!empty($search)) {
@@ -213,13 +212,13 @@ class ProductController extends AbstractFOSRestController
         $view = $this->view($paginatedRepresentation, Response::HTTP_OK);
         $response = $this->handleView($view);
         // Cache
-        $cache->saveResponseInCache(
-            $cacheItemKey,
-            $response,
-            [self::TAG_CACHE_LIST],
-            new \DateTime("+10 minutes"),
-            true
-        );
+//        $cache->saveResponseInCache(
+//            $cacheItemKey,
+//            $response,
+//            [self::TAG_CACHE_LIST],
+//            new \DateTime("+10 minutes"),
+//            true
+//        );
 
         return $response;
     }
@@ -248,15 +247,14 @@ class ProductController extends AbstractFOSRestController
     public function createProductAction(
         Product $newProduct,
         EntityManagerInterface $manager,
-        ConstraintViolationListInterface $violations,
-        CacheTool $cache
+        ConstraintViolationListInterface $violations
     ) {
         $this->handleViolations($violations);
 
         $manager->persist($newProduct);
         $manager->flush();
         // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
+//        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newProduct, Response::HTTP_CREATED);
     }
@@ -280,8 +278,7 @@ class ProductController extends AbstractFOSRestController
     public function editProductAction(
         Product $product,
         Product $modifiedProduct,
-        EntityManagerInterface $manager,
-        CacheTool $cache
+        EntityManagerInterface $manager
     ) {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
@@ -298,7 +295,7 @@ class ProductController extends AbstractFOSRestController
 
         $manager->flush();
         // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
+//        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($product, Response::HTTP_OK);
     }
@@ -319,14 +316,13 @@ class ProductController extends AbstractFOSRestController
      */
     public function deleteProductAction(
         Product $product,
-        EntityManagerInterface $manager,
-        CacheTool $cache
+        EntityManagerInterface $manager
     )
     {
         $manager->remove($product);
         $manager->flush();
         // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
+//        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return  $this->view(null, Response::HTTP_OK);
     }
