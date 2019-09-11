@@ -5,7 +5,7 @@ namespace App\Tests\Controller;
 
 use App\Controller\ProductController;
 use App\Entity\Product;
-use App\Helper\CacheTool;
+use App\Helper\Cache\CacheTool;
 use App\Repository\PaginatedRepository;
 use App\Repository\ProductRepository;
 use App\Tests\TestHelperTrait\UnitTestHelperTrait;
@@ -15,6 +15,7 @@ use FOS\RestBundle\View\ViewHandler;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -133,11 +134,17 @@ class ProductControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->once())
+            ->method("invalidateTags")
+            ->with([ProductController::TAG_CACHE_LIST])
+        ;
 
         $response = $controller->createProductAction(
             $product,
             $manager->reveal(),
-            $violations
+            $violations,
+            $cacheTool
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -169,11 +176,17 @@ class ProductControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->once())
+            ->method("invalidateTags")
+            ->with([ProductController::TAG_CACHE_LIST])
+        ;
 
         $response = $controller->editProductAction(
             $product,
             $modifiedProduct,
-            $manager
+            $manager,
+            $cacheTool
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -193,10 +206,16 @@ class ProductControllerTest extends TestCase
         $manager->remove($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
         $controller = $this->createProductController();
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->once())
+            ->method("invalidateTags")
+            ->with([ProductController::TAG_CACHE_LIST])
+        ;
 
         $response = $controller->deleteProductAction(
             $product,
-            $manager->reveal()
+            $manager->reveal(),
+            $cacheTool
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -229,6 +248,8 @@ class ProductControllerTest extends TestCase
             ->setBrand($brand)
             ->setPrice($price)
             ->setQuantity($quantity)
+            ->setCreatedAt(new \DateTime())
+            ->setUpdatedAt(new \DateTime())
         ;
 
         if ($id) {

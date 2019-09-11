@@ -101,4 +101,15 @@ class CacheTool
     {
         $this->cache->invalidateTags($tags);
     }
+
+    public function generateTag(string $route)
+    {
+        $routeParts = explode("_", $route);
+
+        if (count($routeParts) > 1) {
+            return $routeParts[0] . "_" . $routeParts[1];
+        }
+
+        return $route;
+    }
 }

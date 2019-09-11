@@ -41,6 +41,10 @@ class HttpCacheListener
      * @var bool
      */
     private $canBeCached = true;
+    /**
+     * @var void
+     */
+    private $tag;
 
     public function __construct(
         RouterInterface $router,
@@ -69,6 +73,7 @@ class HttpCacheListener
             $this->privateRoutes,
             $route
         );
+        $this->tag = $this->cacheTool->generateTag($route);
 
         if (!in_array($route, $this->routesToCache)) {
             $this->canBeCached = false;
@@ -97,7 +102,8 @@ class HttpCacheListener
 
             $this->cacheTool->saveResponseInCache(
                 $this->cacheItemKey ?? "no_key",
-                $response
+                $response,
+                $this->tag ? [$this->tag] : null
             );
         }
     }

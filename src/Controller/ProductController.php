@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Exception\ResourceValidationException;
-use App\Helper\CacheTool;
+use App\Helper\Cache\CacheTool;
 use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
@@ -55,16 +55,13 @@ class ProductController extends AbstractFOSRestController
      */
     public function getProductAction(Product $product)
     {
-        $headerGenerator = new HeaderGenerator();
-        $expires = new \DateTime("+10 minutes");
-        $lastModified = $product->getUpdatedAt();
-        $etag = "Product{$product->getId()}{$product->getUpdatedAt()->getTimestamp()}";
-        $headers = $headerGenerator->generate(
-            $expires,
-            $etag,
-            $lastModified,
+        $headers = HeaderGenerator::generateHeaders(
+            self::CACHE_EXPIRATION,
+            "Product{$product->getId()}{$product->getUpdatedAt()->getTimestamp()}",
+            $product->getUpdatedAt(),
             true
         );
+
         return $this->view($product, Response::HTTP_OK, $headers);
     }
 
@@ -174,7 +171,15 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-        return $this->view($paginatedRepresentation, Response::HTTP_OK);
+        $now = new \DateTime();
+        $headers = HeaderGenerator::generateHeaders(
+            self::CACHE_EXPIRATION,
+            "PaginatedProducts{$now->format('Ymd-His')}",
+            $now,
+            true
+        );
+
+        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
     }
 
     /**
@@ -201,14 +206,15 @@ class ProductController extends AbstractFOSRestController
     public function createProductAction(
         Product $newProduct,
         EntityManagerInterface $manager,
-        ConstraintViolationListInterface $violations
+        ConstraintViolationListInterface $violations,
+        CacheTool $cacheTool
     ) {
         $this->handleViolations($violations);
 
         $manager->persist($newProduct);
         $manager->flush();
         // Cache
-//        $cache->invalidateTags([self::TAG_CACHE_LIST]);
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newProduct, Response::HTTP_CREATED);
     }
@@ -232,7 +238,8 @@ class ProductController extends AbstractFOSRestController
     public function editProductAction(
         Product $product,
         Product $modifiedProduct,
-        EntityManagerInterface $manager
+        EntityManagerInterface $manager,
+        CacheTool $cacheTool
     ) {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
@@ -249,7 +256,7 @@ class ProductController extends AbstractFOSRestController
 
         $manager->flush();
         // Cache
-//        $cache->invalidateTags([self::TAG_CACHE_LIST]);
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($product, Response::HTTP_OK);
     }
@@ -270,13 +277,14 @@ class ProductController extends AbstractFOSRestController
      */
     public function deleteProductAction(
         Product $product,
-        EntityManagerInterface $manager
+        EntityManagerInterface $manager,
+        CacheTool $cacheTool
     )
     {
         $manager->remove($product);
         $manager->flush();
         // Cache
-//        $cache->invalidateTags([self::TAG_CACHE_LIST]);
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return  $this->view(null, Response::HTTP_OK);
     }
