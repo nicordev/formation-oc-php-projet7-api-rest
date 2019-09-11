@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
@@ -29,6 +30,9 @@ class CustomerController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
+    public const TAG_CACHE_LIST = "customer_list";
+    public const CACHE_EXPIRATION = "+10 minutes";
+
     /**
      * Get the detail of a customer of your shop
      *
@@ -47,7 +51,12 @@ class CustomerController extends AbstractFOSRestController
     {
         $this->denyAccessUnlessGranted(CustomerVoter::READ, $customer);
 
-        return $this->view($customer, Response::HTTP_OK);
+        $headers = HeaderGenerator::generateShowHeaders(
+            self::CACHE_EXPIRATION,
+            $customer
+        );
+
+        return $this->view($customer, Response::HTTP_OK, $headers);
     }
 
     /**
@@ -70,9 +79,6 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Number of items per page"
      * )
      * @View()
-     * @Cache(
-     *     expires = "+10 minutes"
-     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all customers of the current user"
@@ -115,7 +121,12 @@ class CustomerController extends AbstractFOSRestController
             $paginatedCustomers[PaginatedRepository::KEY_PAGING_PAGES_COUNT]
         );
 
-        return $this->view($paginatedRepresentation, Response::HTTP_OK);
+        $headers = HeaderGenerator::generateListHeaders(
+            self::CACHE_EXPIRATION,
+            "Customer"
+        );
+
+        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
     }
 
     /**

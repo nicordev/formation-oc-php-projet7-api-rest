@@ -57,6 +57,29 @@ class HeaderGenerator
         );
     }
 
+    public static function generateShowHeaders(string $expires, $entity)
+    {
+        return self::generateHeaders(
+            $expires,
+            "Customer{$entity->getId()}{$entity->getUpdatedAt()->getTimestamp()}",
+            $entity->getUpdatedAt(),
+            true
+        );
+    }
+
+    public static function generateListHeaders(string $expires, string $entityName)
+    {
+        $now = new \DateTime();
+        $entityName = ucfirst($entityName);
+
+        return self::generateHeaders(
+            $expires,
+            "Paginated{$entityName}{$now->format('Ymd-His')}",
+            $now,
+            true
+        );
+    }
+
     /**
      * Generate an array of headers
      *

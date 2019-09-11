@@ -55,11 +55,9 @@ class ProductController extends AbstractFOSRestController
      */
     public function getProductAction(Product $product)
     {
-        $headers = HeaderGenerator::generateHeaders(
+        $headers = HeaderGenerator::generateShowHeaders(
             self::CACHE_EXPIRATION,
-            "Product{$product->getId()}{$product->getUpdatedAt()->getTimestamp()}",
-            $product->getUpdatedAt(),
-            true
+            $product
         );
 
         return $this->view($product, Response::HTTP_OK, $headers);
@@ -171,12 +169,9 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-        $now = new \DateTime();
-        $headers = HeaderGenerator::generateHeaders(
+        $headers = HeaderGenerator::generateListHeaders(
             self::CACHE_EXPIRATION,
-            "PaginatedProducts{$now->format('Ymd-His')}",
-            $now,
-            true
+            "Product"
         );
 
         return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);

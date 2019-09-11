@@ -85,6 +85,7 @@ class HttpCacheListener
         if ($cachedItem) {
             $cachedResponse = $cachedItem->get();
             $this->canBeCached = false;
+            $event->setResponse($cachedResponse);
             return $cachedResponse;
         }
     }
