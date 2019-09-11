@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Helper\Cache\CacheTool;
 use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
@@ -152,13 +153,16 @@ class CustomerController extends AbstractFOSRestController
     public function createCustomerAction(
         Customer $newCustomer,
         EntityManagerInterface $manager,
-        ConstraintViolationListInterface $violations
+        ConstraintViolationListInterface $violations,
+        CacheTool $cacheTool
     ) {
         $this->handleViolations($violations);
 
         $newCustomer->setUser($this->getUser());
         $manager->persist($newCustomer);
         $manager->flush();
+        // Cache
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newCustomer, Response::HTTP_CREATED);
     }
@@ -181,7 +185,8 @@ class CustomerController extends AbstractFOSRestController
     public function editCustomerAction(
         Customer $customer,
         Customer $modifiedCustomer,
-        EntityManagerInterface $manager
+        EntityManagerInterface $manager,
+        CacheTool $cacheTool
     ) {
         $this->denyAccessUnlessGranted(CustomerVoter::UPDATE, $customer);
 
@@ -199,6 +204,8 @@ class CustomerController extends AbstractFOSRestController
         }
 
         $manager->flush();
+        // Cache
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($customer, Response::HTTP_OK);
     }
@@ -216,12 +223,17 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Delete a customer of the current user"
      * )
      */
-    public function deleteCustomerAction(Customer $customer, EntityManagerInterface $manager)
-    {
+    public function deleteCustomerAction(
+        Customer $customer,
+        EntityManagerInterface $manager,
+        CacheTool $cacheTool
+    ) {
         $this->denyAccessUnlessGranted(CustomerVoter::DELETE, $customer);
 
         $manager->remove($customer);
         $manager->flush();
+        // Cache
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view(null, Response::HTTP_OK);
     }

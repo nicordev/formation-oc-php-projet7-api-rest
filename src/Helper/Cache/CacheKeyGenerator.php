@@ -39,7 +39,7 @@ class CacheKeyGenerator
         $routeParts = $this->extractRoutePartsFromRequest($request);
         $parameters = $this->extractParametersFromRequest($request);
         $route = $routeParts["_route"];
-        $keyParts[] = implode(self::KEY_PARTS_INNER_SEPARATOR, $routeParts);
+        $keyParts[] = $route;
         $keyParts[] = implode(self::KEY_PARTS_INNER_SEPARATOR, $parameters);
 
         if (in_array($routeParts["_route"], $privateRoutes)) {
