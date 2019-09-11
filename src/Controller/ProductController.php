@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Exception\ResourceValidationException;
 use App\Helper\CacheTool;
+use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,12 +48,6 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_show_model"
      * )
      * @View()
-     * @Cache(
-     *     public = true,
-     *     expires = "+10 minutes",
-     *     lastModified = "product.getUpdatedAt()",
-     *     Etag = "'Product' ~ product.getId() ~ product.getUpdatedAt().getTimestamp()"
-     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a product"
@@ -60,7 +55,17 @@ class ProductController extends AbstractFOSRestController
      */
     public function getProductAction(Product $product)
     {
-        return $this->view($product, Response::HTTP_OK);
+        $headerGenerator = new HeaderGenerator();
+        $expires = new \DateTime("+10 minutes");
+        $lastModified = $product->getUpdatedAt();
+        $etag = "Product{$product->getId()}{$product->getUpdatedAt()->getTimestamp()}";
+        $headers = $headerGenerator->generate(
+            $expires,
+            $etag,
+            $lastModified,
+            true
+        );
+        return $this->view($product, Response::HTTP_OK, $headers);
     }
 
     /**

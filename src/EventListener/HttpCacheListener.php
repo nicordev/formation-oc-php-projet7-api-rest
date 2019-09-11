@@ -5,8 +5,10 @@ namespace App\EventListener;
 
 use App\Helper\Cache\CacheKeyGenerator;
 use App\Helper\Cache\CacheTool;
+use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\Routing\RouterInterface;
 
 class HttpCacheListener
@@ -92,14 +94,6 @@ class HttpCacheListener
     {
         if ($this->canBeCached) {
             $response = $event->getResponse();
-
-            $this->cacheTool->configureResponse(
-                $response,
-                new \DateTime("+1 minute"),
-                null,
-                new \DateTime(),
-                true
-            );
 
             $this->cacheTool->saveResponseInCache(
                 $this->cacheItemKey ?? "no_key",
