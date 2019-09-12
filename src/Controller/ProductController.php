@@ -43,10 +43,6 @@ class ProductController extends AbstractFOSRestController
      *     name = "product_show_id",
      *     requirements = {"id": "\d+"}
      * )
-     * @Get(
-     *     path = "/api/products/{model}",
-     *     name = "product_show_model"
-     * )
      * @View()
      * @SWG\Response(
      *     response = 200,

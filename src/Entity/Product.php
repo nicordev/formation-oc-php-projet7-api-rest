@@ -21,15 +21,6 @@ use JMS\Serializer\Annotation as Serializer;
  *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  * @Hateoas\Relation(
- *      "self",
- *      href = @Hateoas\Route(
- *          "product_show_model",
- *          parameters = { "model" = "expr(object.getModel())" },
- *          absolute = true
- *      ),
- *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
- * )
- * @Hateoas\Relation(
  *      "edit",
  *      href = @Hateoas\Route(
  *          "product_edit",

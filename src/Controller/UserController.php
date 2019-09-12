@@ -42,10 +42,6 @@ class UserController extends AbstractFOSRestController
      *     name = "user_show_id",
      *     requirements = {"id": "\d+"}
      * )
-     * @Get(
-     *     path = "/api/users/{name}",
-     *     name = "user_show_name"
-     * )
      * @View()
      * @SWG\Response(
      *     response = 200,

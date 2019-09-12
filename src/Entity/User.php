@@ -23,15 +23,6 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
  * @Hateoas\Relation(
- *      "self",
- *      href = @Hateoas\Route(
- *          "user_show_name",
- *          parameters = { "name" = "expr(object.getName())" },
- *          absolute = true
- *      ),
- *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
- * )
- * @Hateoas\Relation(
  *      "edit",
  *      href = @Hateoas\Route(
  *          "user_edit",
