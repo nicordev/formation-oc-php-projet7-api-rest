@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Helper\Cache\CacheTool;
 use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
@@ -29,6 +30,7 @@ class UserController extends AbstractFOSRestController
     use ViolationsTrait;
 
     public const CACHE_EXPIRATION = "+10 minutes";
+    public const TAG_CACHE_LIST = "user_list";
 
     /**
      * Get the profile of a user.
@@ -156,7 +158,8 @@ class UserController extends AbstractFOSRestController
         User $newUser,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
-        UserPasswordEncoderInterface $encoder
+        UserPasswordEncoderInterface $encoder,
+        CacheTool $cacheTool
     ) {
         $this->denyAccessUnlessGranted(UserVoter::CREATE);
 
@@ -170,6 +173,8 @@ class UserController extends AbstractFOSRestController
         $manager->persist($newUser);
         $manager->flush();
         $newUser->setPassword(null);
+        // Cache
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newUser, Response::HTTP_CREATED);
     }
@@ -195,7 +200,8 @@ class UserController extends AbstractFOSRestController
         User $user,
         User $modifiedUser,
         EntityManagerInterface $manager,
-        UserPasswordEncoderInterface $encoder
+        UserPasswordEncoderInterface $encoder,
+        CacheTool $cacheTool
     ) {
         $this->denyAccessUnlessGranted(UserVoter::UPDATE, $user);
 
@@ -215,6 +221,8 @@ class UserController extends AbstractFOSRestController
 
         $manager->flush();
         $user->setPassword(null);
+        // Cache
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($user, Response::HTTP_OK);
     }
@@ -234,13 +242,19 @@ class UserController extends AbstractFOSRestController
      *     description = "Delete the current user"
      * )
      */
-    public function deleteUserAction(User $user, EntityManagerInterface $manager)
+    public function deleteUserAction(
+        User $user,
+        EntityManagerInterface $manager,
+        CacheTool $cacheTool
+    )
     {
         $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
 
         $id = $user->getId();
         $manager->remove($user);
         $manager->flush();
+        // Cache
+        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view(null, Response::HTTP_OK);
     }

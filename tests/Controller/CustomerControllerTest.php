@@ -4,7 +4,6 @@ namespace App\Tests\Controller;
 
 
 use App\Controller\CustomerController;
-use App\Controller\ProductController;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Helper\Cache\CacheTool;

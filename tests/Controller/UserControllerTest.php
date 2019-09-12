@@ -3,9 +3,11 @@
 namespace App\Tests\Controller;
 
 
+use App\Controller\ProductController;
 use App\Controller\UserController;
 use App\Entity\Customer;
 use App\Entity\User;
+use App\Helper\Cache\CacheTool;
 use App\Repository\PaginatedRepository;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
@@ -179,8 +181,19 @@ class UserControllerTest extends TestCase
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->once())
+            ->method("invalidateTags")
+            ->with([UserController::TAG_CACHE_LIST])
+        ;
 
-        $response = $controller->createUserAction($user, $manager->reveal(), $violations, $encoder->reveal());
+        $response = $controller->createUserAction(
+            $user,
+            $manager->reveal(),
+            $violations,
+            $encoder->reveal(),
+            $cacheTool
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -207,9 +220,20 @@ class UserControllerTest extends TestCase
             ->encodePassword($user, $user->getPassword())
             ->shouldNotBeCalled()
         ;
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->never())
+            ->method("invalidateTags")
+            ->with([UserController::TAG_CACHE_LIST])
+        ;
 
         $this->expectException(AccessDeniedException::class);
-        $controller->createUserAction($user, $manager->reveal(), $violations, $encoder->reveal());
+        $controller->createUserAction(
+            $user,
+            $manager->reveal(),
+            $violations,
+            $encoder->reveal(),
+            $cacheTool
+        );
     }
 
     public function testEditUserAction()
@@ -241,8 +265,19 @@ class UserControllerTest extends TestCase
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->once())
+            ->method("invalidateTags")
+            ->with([UserController::TAG_CACHE_LIST])
+        ;
 
-        $response = $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+        $response = $controller->editUserAction(
+            $user,
+            $modifiedUser,
+            $manager,
+            $encoder->reveal(),
+            $cacheTool
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -280,9 +315,20 @@ class UserControllerTest extends TestCase
             ->encodePassword($modifiedUser, $modifiedUser->getPassword())
             ->shouldNotBeCalled()
         ;
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->never())
+            ->method("invalidateTags")
+            ->with([UserController::TAG_CACHE_LIST])
+        ;
 
         $this->expectException(AccessDeniedException::class);
-        $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+        $controller->editUserAction(
+            $user,
+            $modifiedUser,
+            $manager,
+            $encoder->reveal(),
+            $cacheTool
+        );
     }
 
     public function testDeleteUserAction()
@@ -297,8 +343,17 @@ class UserControllerTest extends TestCase
             UserVoter::DELETE,
             true
         );
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->once())
+            ->method("invalidateTags")
+            ->with([UserController::TAG_CACHE_LIST])
+        ;
 
-        $response = $controller->deleteUserAction($user, $manager->reveal());
+        $response = $controller->deleteUserAction(
+            $user,
+            $manager->reveal(),
+            $cacheTool
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -316,9 +371,18 @@ class UserControllerTest extends TestCase
             UserVoter::DELETE,
             false
         );
+        $cacheTool = $this->createMock(CacheTool::class);
+        $cacheTool->expects($this->never())
+            ->method("invalidateTags")
+            ->with([UserController::TAG_CACHE_LIST])
+        ;
 
         $this->expectException(AccessDeniedException::class);
-        $controller->deleteUserAction($user, $manager->reveal());
+        $controller->deleteUserAction(
+            $user,
+            $manager->reveal(),
+            $cacheTool
+        );
     }
 
     // Private
@@ -360,6 +424,8 @@ class UserControllerTest extends TestCase
             ->setEmail($email)
             ->setPassword($password)
             ->setRoles($roles)
+            ->setCreatedAt(new \DateTime())
+            ->setUpdatedAt(new \DateTime())
         ;
 
         if ($id) {
