@@ -71,6 +71,15 @@ class UserVoter extends Voter
             return false;
         }
 
+        if (in_array($attribute, [self::CREATE, self::LIST])) {
+            // The current user must be admin
+            if (in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
+                return true;
+            }
+
+            return false;
+        }
+
         // The subject must be a User
         if (!$requestedUser instanceof User) {
 
@@ -80,15 +89,6 @@ class UserVoter extends Voter
         if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE])) {
             // The current user must be the same as the requested user or must be an admin
             if ($currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
-                return true;
-            }
-
-            return false;
-        }
-
-        if (in_array($attribute, [self::CREATE, self::LIST])) {
-            // The current user must be admin
-            if (in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
                 return true;
             }
 

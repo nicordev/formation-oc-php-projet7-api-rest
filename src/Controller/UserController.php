@@ -124,7 +124,12 @@ class UserController extends AbstractFOSRestController
             $paginatedUsers[UserRepository::KEY_PAGING_PAGES_COUNT]
         );
 
-        return $this->view($paginatedRepresentation, Response::HTTP_OK);
+        $headers = HeaderGenerator::generateListHeaders(
+            self::CACHE_EXPIRATION,
+            "User"
+        );
+
+        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
     }
 
     /**
