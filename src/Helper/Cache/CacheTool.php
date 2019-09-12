@@ -62,36 +62,6 @@ class CacheTool
     }
 
     /**
-     * Add some cache relative headers to the response
-     *
-     * @param Response $response
-     * @param \DateTimeInterface|null $expires
-     * @param string|null $etag
-     * @param \DateTimeInterface|null $lastModified
-     * @param bool $public
-     */
-    public function configureResponse(
-        Response $response,
-        ?\DateTimeInterface $expires = null,
-        ?string $etag = null,
-        ?\DateTimeInterface $lastModified = null,
-        bool $public = true
-    ) {
-        if ($expires) {
-            $response->setExpires($expires);
-        }
-        if ($etag) {
-            $response->setEtag($etag);
-        }
-        if ($lastModified) {
-            $response->setLastModified($lastModified);
-        }
-        if ($public) {
-            $response->setPublic();
-        }
-    }
-
-    /**
      * Invalidate cache items using their tags
      *
      * @param array $tags
@@ -102,6 +72,12 @@ class CacheTool
         $this->cache->invalidateTags($tags);
     }
 
+    /**
+     * Generate a tag from the first two parts of the route name
+     *
+     * @param string $route
+     * @return string
+     */
     public function generateTag(string $route)
     {
         $routeParts = explode("_", $route);
@@ -111,5 +87,22 @@ class CacheTool
         }
 
         return $route;
+    }
+
+    /**
+     * Look in the Cache-Control header to see if the response can be cached
+     *
+     * @param Response $response
+     * @return bool
+     */
+    public function canBeCachedRegardingToCacheControlHeader(Response $response)
+    {
+        $cacheControl = $response->headers->get("cache-control");
+
+        if (strpos($cacheControl, "no-cache") === false || strpos($cacheControl, "private") === false) {
+            return true;
+        }
+
+        return false;
     }
 }

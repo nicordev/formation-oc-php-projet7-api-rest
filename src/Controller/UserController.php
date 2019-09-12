@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
@@ -27,6 +28,8 @@ class UserController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
+    public const CACHE_EXPIRATION = "+10 minutes";
+
     /**
      * Get the profile of a user.
      *
@@ -42,11 +45,6 @@ class UserController extends AbstractFOSRestController
      *     name = "user_show_name"
      * )
      * @View()
-     * @Cache(
-     *     expires = "+10 minutes",
-     *     lastModified="user.getUpdatedAt()",
-     *     Etag="'User' ~ user.getId() ~ user.getUpdatedAt().getTimestamp()"
-     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a user"
@@ -56,7 +54,12 @@ class UserController extends AbstractFOSRestController
     {
         $this->denyAccessUnlessGranted(UserVoter::READ, $user);
 
-        return $this->view($user, Response::HTTP_OK);
+        $headers = HeaderGenerator::generateShowHeaders(
+            self::CACHE_EXPIRATION,
+            $user
+        );
+
+        return $this->view($user, Response::HTTP_OK ,$headers);
     }
 
     /**

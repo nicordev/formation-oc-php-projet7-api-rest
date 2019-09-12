@@ -40,7 +40,7 @@ class HttpCacheListener
     /**
      * @var bool
      */
-    private $canBeCached = true;
+    private $canBeCachedRegardingToRequest = true;
     /**
      * @var void
      */
@@ -76,7 +76,8 @@ class HttpCacheListener
         $this->tag = $this->cacheTool->generateTag($route);
 
         if (!in_array($route, $this->routesToCache)) {
-            $this->canBeCached = false;
+            $this->canBeCachedRegardingToRequest = false;
+
             return;
         }
 
@@ -84,8 +85,9 @@ class HttpCacheListener
 
         if ($cachedItem) {
             $cachedResponse = $cachedItem->get();
-            $this->canBeCached = false;
+            $this->canBeCachedRegardingToRequest = false;
             $event->setResponse($cachedResponse);
+
             return $cachedResponse;
         }
     }
@@ -98,14 +100,16 @@ class HttpCacheListener
      */
     public function onKernelResponse(ResponseEvent $event)
     {
-        if ($this->canBeCached) {
+        if ($this->canBeCachedRegardingToRequest) {
             $response = $event->getResponse();
 
-            $this->cacheTool->saveResponseInCache(
-                $this->cacheItemKey ?? "no_key",
-                $response,
-                $this->tag ? [$this->tag] : null
-            );
+            if ($this->cacheTool->canBeCachedRegardingToCacheControlHeader($response)) {
+                $this->cacheTool->saveResponseInCache(
+                    $this->cacheItemKey ?? "no_key",
+                    $response,
+                    $this->tag ? [$this->tag] : null
+                );
+            }
         }
     }
 }
