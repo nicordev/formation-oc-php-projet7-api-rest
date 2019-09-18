@@ -41,7 +41,8 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @CacheTool(
      *     isCacheable = true,
-     *     isPrivate = true
+     *     isPrivate = true,
+     *     tags = {"customer_show"}
      * )
      */
     public function getCustomerAction(Customer $customer)
@@ -77,7 +78,8 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @CacheTool(
      *     isCacheable = true,
-     *     isPrivate = true
+     *     isPrivate = true,
+     *     tags = {"customer_list"}
      * )
      */
     public function getCustomersAction(
@@ -172,7 +174,7 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Update a customer of the current user"
      * )
      * @CacheTool(
-     *     tagsToInvalidate = {"customer_list"}
+     *     tagsToInvalidate = {"customer_list", "customer_show"}
      * )
      */
     public function editCustomerAction(
@@ -213,7 +215,7 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Delete a customer of the current user"
      * )
      * @CacheTool(
-     *     tagsToInvalidate = {"customer_list"}
+     *     tagsToInvalidate = {"customer_list", "customer_show"}
      * )
      */
     public function deleteCustomerAction(

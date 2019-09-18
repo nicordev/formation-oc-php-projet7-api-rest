@@ -8,9 +8,9 @@ use App\Controller\CacheController;
 use App\Helper\AnnotationReadingTool\AnnotationReadingTool;
 use App\Helper\CacheKeyGenerator\CacheKeyGenerator;
 use App\Helper\Cache\Cache;
+use App\Helper\CacheTagMaker\CacheTagMaker;
 use App\Helper\HeaderGenerator;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Routing\RouterInterface;
@@ -40,10 +40,6 @@ class HttpCacheListener
     /**
      * @var string
      */
-    private $tag;
-    /**
-     * @var string
-     */
     private $requestedRoute;
     /**
      * @var AnnotationReadingTool
@@ -55,17 +51,23 @@ class HttpCacheListener
     private $cacheToolAnnotation;
 
     public const CACHE_EXPIRATION = "+10 minutes";
+    /**
+     * @var CacheTagMaker
+     */
+    private $cacheTagMaker;
 
     public function __construct(
         RouterInterface $router,
         Cache $cache,
         CacheKeyGenerator $keyGenerator,
-        AnnotationReadingTool $annotationReadingTool
+        AnnotationReadingTool $annotationReadingTool,
+        CacheTagMaker $cacheTagMaker
     ) {
         $this->router = $router;
         $this->cache = $cache;
         $this->keyGenerator = $keyGenerator;
         $this->annotationReadingTool = $annotationReadingTool;
+        $this->cacheTagMaker = $cacheTagMaker;
     }
 
     /**
@@ -85,6 +87,20 @@ class HttpCacheListener
             $controllerAndMethod[1]
         );
 
+        if (!$this->cacheToolAnnotation) {
+            return;
+        }
+
+        $request = $event->getRequest();
+
+        foreach ($this->cacheToolAnnotation->tags as &$tag) {
+            $this->cacheTagMaker->addIdForShowAction($request, $tag);
+        }
+
+        foreach ($this->cacheToolAnnotation->tagsToInvalidate as &$tag) {
+            $this->cacheTagMaker->addIdForShowAction($request, $tag);
+        }
+
         if (!empty($this->cacheToolAnnotation->tagsToInvalidate)) {
             $this->cache->invalidateTags($this->cacheToolAnnotation->tagsToInvalidate);
         }
@@ -94,13 +110,11 @@ class HttpCacheListener
             return;
         }
 
-        $request = $event->getRequest();
         $this->cacheItemKey = $this->keyGenerator->generateKeyFromRequest(
             $request,
             $this->cacheToolAnnotation->isPrivate,
             $this->requestedRoute
         );
-        $this->tag = $this->cache->generateTag($this->requestedRoute);
         $cachedItem = $this->cache->getItemFromCache($this->cacheItemKey);
 
         if ($cachedItem) {
@@ -157,7 +171,7 @@ class HttpCacheListener
                 $this->cache->saveResponseInCache(
                     $this->cacheItemKey ?? "no_key",
                     $response,
-                    $this->tag ? [$this->tag] : null
+                    $this->cacheToolAnnotation->tags
                 );
             }
         }

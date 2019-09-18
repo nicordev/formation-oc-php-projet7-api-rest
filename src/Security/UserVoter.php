@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -67,7 +68,6 @@ class UserVoter extends Voter
 
         // the current user must be logged in; if not, deny access
         if (!$currentUser instanceof User) {
-
             return false;
         }
 
@@ -82,7 +82,6 @@ class UserVoter extends Voter
 
         // The subject must be a User
         if (!$requestedUser instanceof User) {
-
             return false;
         }
 

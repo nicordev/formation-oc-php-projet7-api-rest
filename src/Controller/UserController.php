@@ -43,7 +43,8 @@ class UserController extends AbstractFOSRestController
      *     description = "Return the detail of a user"
      * )
      * @CacheTool(
-     *     isCacheable = true
+     *     isCacheable = true,
+     *     tags = {"user_show"}
      * )
      */
     public function getUserAction(User $user)
@@ -78,7 +79,8 @@ class UserController extends AbstractFOSRestController
      *     description = "Return the list of all users (admin only)"
      * )
      * @CacheTool(
-     *     isCacheable = true
+     *     isCacheable = true,
+     *     tags = {"user_list"}
      * )
      */
     public function getUsersAction(
@@ -183,7 +185,7 @@ class UserController extends AbstractFOSRestController
      *     description = "Update the current user"
      * )
      * @CacheTool(
-     *     tagsToInvalidate = {"user_list"}
+     *     tagsToInvalidate = {"user_list", "user_show"}
      * )
      */
     public function editUserAction(
@@ -229,14 +231,13 @@ class UserController extends AbstractFOSRestController
      *     description = "Delete the current user"
      * )
      * @CacheTool(
-     *     tagsToInvalidate = {"user_list"}
+     *     tagsToInvalidate = {"user_list", "user_show"}
      * )
      */
     public function deleteUserAction(
         User $user,
         EntityManagerInterface $manager
-    )
-    {
+    ) {
         $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
 
         $id = $user->getId();

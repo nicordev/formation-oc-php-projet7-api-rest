@@ -73,23 +73,6 @@ class Cache
     }
 
     /**
-     * Generate a tag from the first two parts of the route name
-     *
-     * @param string $route
-     * @return string
-     */
-    public function generateTag(string $route)
-    {
-        $routeParts = explode("_", $route);
-
-        if (count($routeParts) > 1) {
-            return $routeParts[0] . "_" . $routeParts[1];
-        }
-
-        return $route;
-    }
-
-    /**
      * Look in the Cache-Control header to see if the response can be cached
      *
      * @param Response $response

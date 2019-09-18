@@ -5,10 +5,6 @@ namespace App\Controller;
 
 use App\Annotation\CacheTool;
 use App\Entity\Product;
-use App\Exception\ResourceValidationException;
-use App\Helper\AnnotationReadingTool\AnnotationTool;
-use App\Helper\Cache\Cache;
-use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,17 +13,14 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Swagger\Annotations as SWG;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductController extends AbstractFOSRestController
 {
@@ -38,7 +31,7 @@ class ProductController extends AbstractFOSRestController
      *
      * @Get(
      *     path = "/api/products/{id}",
-     *     name = "product_show_id",
+     *     name = "product_show",
      *     requirements = {"id": "\d+"}
      * )
      * @View()
@@ -47,7 +40,8 @@ class ProductController extends AbstractFOSRestController
      *     description = "Return the detail of a product"
      * )
      * @CacheTool(
-     *     isCacheable = true
+     *     isCacheable = true,
+     *     tags = {"product_show"}
      * )
      */
     public function getProductAction(Product $product)
@@ -103,7 +97,8 @@ class ProductController extends AbstractFOSRestController
      *     description = "Return the list of all products available"
      * )
      * @CacheTool(
-     *     isCacheable = true
+     *     isCacheable = true,
+     *     tags = {"product_list"}
      * )
      */
     public function getProductsAction(
@@ -220,7 +215,7 @@ class ProductController extends AbstractFOSRestController
      *     description = "Update a product (admin only)"
      * )
      * @CacheTool(
-     *     tagsToInvalidate = {"product_list"}
+     *     tagsToInvalidate = {"product_list", "product_show"}
      * )
      */
     public function editProductAction(
@@ -260,7 +255,7 @@ class ProductController extends AbstractFOSRestController
      *     description = "Delete a product (admin only)"
      * )
      * @CacheTool(
-     *     tagsToInvalidate = {"product_list"}
+     *     tagsToInvalidate = {"product_list", "product_show"}
      * )
      */
     public function deleteProductAction(

@@ -14,7 +14,7 @@ use JMS\Serializer\Annotation as Serializer;
  * @Hateoas\Relation(
  *      "self",
  *      href = @Hateoas\Route(
- *          "product_show_id",
+ *          "product_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
  *      ),
