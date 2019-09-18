@@ -5,7 +5,7 @@ namespace App\Tests\Controller;
 
 use App\Controller\ProductController;
 use App\Entity\Product;
-use App\Helper\Cache\CacheTool;
+use App\Helper\Cache\Cache;
 use App\Repository\PaginatedRepository;
 use App\Repository\ProductRepository;
 use App\Tests\TestHelperTrait\UnitTestHelperTrait;
@@ -134,8 +134,8 @@ class ProductControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->persist($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([ProductController::TAG_CACHE_LIST])
         ;
@@ -144,7 +144,7 @@ class ProductControllerTest extends TestCase
             $product,
             $manager->reveal(),
             $violations,
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -176,8 +176,8 @@ class ProductControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([ProductController::TAG_CACHE_LIST])
         ;
@@ -186,7 +186,7 @@ class ProductControllerTest extends TestCase
             $product,
             $modifiedProduct,
             $manager,
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -206,8 +206,8 @@ class ProductControllerTest extends TestCase
         $manager->remove($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
         $controller = $this->createProductController();
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([ProductController::TAG_CACHE_LIST])
         ;
@@ -215,7 +215,7 @@ class ProductControllerTest extends TestCase
         $response = $controller->deleteProductAction(
             $product,
             $manager->reveal(),
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());

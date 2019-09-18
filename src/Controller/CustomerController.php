@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
+use App\Annotation\CacheTool;
 use App\Entity\Customer;
-use App\Helper\Cache\CacheTool;
+use App\Helper\Cache\Cache;
 use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
@@ -15,7 +16,6 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
@@ -47,17 +47,15 @@ class CustomerController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Return the detail of a customer"
      * )
+     * @CacheTool(
+     *     isCacheable = true
+     * )
      */
     public function getCustomerAction(Customer $customer)
     {
         $this->denyAccessUnlessGranted(CustomerVoter::READ, $customer);
 
-        $headers = HeaderGenerator::generateShowHeaders(
-            self::CACHE_EXPIRATION,
-            $customer
-        );
-
-        return $this->view($customer, Response::HTTP_OK, $headers);
+        return $this->view($customer, Response::HTTP_OK);
     }
 
     /**
@@ -83,6 +81,9 @@ class CustomerController extends AbstractFOSRestController
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all customers of the current user"
+     * )
+     * @CacheTool(
+     *     isCacheable = true
      * )
      */
     public function getCustomersAction(
@@ -122,12 +123,7 @@ class CustomerController extends AbstractFOSRestController
             $paginatedCustomers[PaginatedRepository::KEY_PAGING_PAGES_COUNT]
         );
 
-        $headers = HeaderGenerator::generateListHeaders(
-            self::CACHE_EXPIRATION,
-            "Customer"
-        );
-
-        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
@@ -154,7 +150,7 @@ class CustomerController extends AbstractFOSRestController
         Customer $newCustomer,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
-        CacheTool $cacheTool
+        Cache $cache
     ) {
         $this->handleViolations($violations);
 
@@ -162,7 +158,7 @@ class CustomerController extends AbstractFOSRestController
         $manager->persist($newCustomer);
         $manager->flush();
         // Cache
-        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newCustomer, Response::HTTP_CREATED);
     }
@@ -186,7 +182,7 @@ class CustomerController extends AbstractFOSRestController
         Customer $customer,
         Customer $modifiedCustomer,
         EntityManagerInterface $manager,
-        CacheTool $cacheTool
+        Cache $cache
     ) {
         $this->denyAccessUnlessGranted(CustomerVoter::UPDATE, $customer);
 
@@ -205,7 +201,7 @@ class CustomerController extends AbstractFOSRestController
 
         $manager->flush();
         // Cache
-        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($customer, Response::HTTP_OK);
     }
@@ -226,14 +222,14 @@ class CustomerController extends AbstractFOSRestController
     public function deleteCustomerAction(
         Customer $customer,
         EntityManagerInterface $manager,
-        CacheTool $cacheTool
+        Cache $cache
     ) {
         $this->denyAccessUnlessGranted(CustomerVoter::DELETE, $customer);
 
         $manager->remove($customer);
         $manager->flush();
         // Cache
-        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view(null, Response::HTTP_OK);
     }

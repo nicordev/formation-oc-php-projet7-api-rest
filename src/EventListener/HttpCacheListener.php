@@ -3,12 +3,12 @@
 namespace App\EventListener;
 
 
-use App\Helper\Cache\CacheKeyGenerator;
-use App\Helper\Cache\CacheTool;
-use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
+use App\Helper\CacheKeyGenerator\CacheKeyGenerator;
+use App\Helper\Cache\Cache;
+use App\Helper\HeaderGenerator;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Routing\RouterInterface;
 
 class HttpCacheListener
@@ -18,9 +18,9 @@ class HttpCacheListener
      */
     private $router;
     /**
-     * @var CacheTool
+     * @var Cache
      */
-    private $cacheTool;
+    private $cache;
     /**
      * @var CacheKeyGenerator
      */
@@ -30,14 +30,6 @@ class HttpCacheListener
      */
     private $cacheItemKey;
     /**
-     * @var array
-     */
-    private $privateRoutes;
-    /**
-     * @var array
-     */
-    private $routesToCache;
-    /**
      * @var bool
      */
     private $canBeCachedRegardingToRequest = true;
@@ -45,18 +37,18 @@ class HttpCacheListener
      * @var void
      */
     private $tag;
+    private $requestedRoute;
+
+    public const CACHE_EXPIRATION = "+10 minutes";
 
     public function __construct(
         RouterInterface $router,
-        CacheTool $cacheTool,
-        CacheKeyGenerator $keyGenerator,
-        string $projectDirectory
+        Cache $cache,
+        CacheKeyGenerator $keyGenerator
     ) {
         $this->router = $router;
-        $this->cacheTool = $cacheTool;
+        $this->cache = $cache;
         $this->keyGenerator = $keyGenerator;
-        $this->privateRoutes = require "$projectDirectory/config/http_cache/private_routes.php";
-        $this->routesToCache = require "$projectDirectory/config/http_cache/routes_to_cache.php";
     }
 
     /**
@@ -70,18 +62,17 @@ class HttpCacheListener
         $request = $event->getRequest();
         $this->cacheItemKey = $this->keyGenerator->generateKeyFromRequest(
             $request,
-            $this->privateRoutes,
-            $route
+            $this->requestedRoute
         );
-        $this->tag = $this->cacheTool->generateTag($route);
+        $this->tag = $this->cache->generateTag($this->requestedRoute);
 
-        if (!in_array($route, $this->routesToCache)) {
+        if (!$this->cache->canBeCached($this->requestedRoute)) {
             $this->canBeCachedRegardingToRequest = false;
 
             return;
         }
 
-        $cachedItem = $this->cacheTool->getItemFromCache($this->cacheItemKey);
+        $cachedItem = $this->cache->getItemFromCache($this->cacheItemKey);
 
         if ($cachedItem) {
             $cachedResponse = $cachedItem->get();
@@ -89,6 +80,38 @@ class HttpCacheListener
             $event->setResponse($cachedResponse);
 
             return $cachedResponse;
+        }
+    }
+
+    /**
+     * Add headers and invalidate tags
+     *
+     * @param ViewEvent $event
+     * @throws \Exception
+     */
+    public function onKernelView(ViewEvent $event)
+    {
+        $view = $event->getControllerResult();
+        $data = $view->getData();
+
+        // Headers
+        if ($this->canBeCachedRegardingToRequest) {
+            if (strpos($this->requestedRoute, "show") !== false) {
+                $headers = HeaderGenerator::generateShowHeaders(
+                    self::CACHE_EXPIRATION,
+                    $data
+                );
+            } elseif (strpos($this->requestedRoute, "list") !== false) {
+                $entity = explode("_", $this->requestedRoute)[0];
+                $headers = HeaderGenerator::generateListHeaders(
+                    self::CACHE_EXPIRATION,
+                    $entity
+                );
+            }
+
+            if (isset($headers)) {
+                $view->setHeaders($headers);
+            };
         }
     }
 
@@ -103,8 +126,8 @@ class HttpCacheListener
         if ($this->canBeCachedRegardingToRequest) {
             $response = $event->getResponse();
 
-            if ($this->cacheTool->canBeCachedRegardingToCacheControlHeader($response)) {
-                $this->cacheTool->saveResponseInCache(
+            if ($this->cache->canBeCachedRegardingToCacheControlHeader($response)) {
+                $this->cache->saveResponseInCache(
                     $this->cacheItemKey ?? "no_key",
                     $response,
                     $this->tag ? [$this->tag] : null

@@ -7,7 +7,7 @@ use App\Controller\ProductController;
 use App\Controller\UserController;
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Helper\Cache\CacheTool;
+use App\Helper\Cache\Cache;
 use App\Repository\PaginatedRepository;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
@@ -181,8 +181,8 @@ class UserControllerTest extends TestCase
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([UserController::TAG_CACHE_LIST])
         ;
@@ -192,7 +192,7 @@ class UserControllerTest extends TestCase
             $manager->reveal(),
             $violations,
             $encoder->reveal(),
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -220,8 +220,8 @@ class UserControllerTest extends TestCase
             ->encodePassword($user, $user->getPassword())
             ->shouldNotBeCalled()
         ;
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->never())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->never())
             ->method("invalidateTags")
             ->with([UserController::TAG_CACHE_LIST])
         ;
@@ -232,7 +232,7 @@ class UserControllerTest extends TestCase
             $manager->reveal(),
             $violations,
             $encoder->reveal(),
-            $cacheTool
+            $cache
         );
     }
 
@@ -265,8 +265,8 @@ class UserControllerTest extends TestCase
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([UserController::TAG_CACHE_LIST])
         ;
@@ -276,7 +276,7 @@ class UserControllerTest extends TestCase
             $modifiedUser,
             $manager,
             $encoder->reveal(),
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -315,8 +315,8 @@ class UserControllerTest extends TestCase
             ->encodePassword($modifiedUser, $modifiedUser->getPassword())
             ->shouldNotBeCalled()
         ;
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->never())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->never())
             ->method("invalidateTags")
             ->with([UserController::TAG_CACHE_LIST])
         ;
@@ -327,7 +327,7 @@ class UserControllerTest extends TestCase
             $modifiedUser,
             $manager,
             $encoder->reveal(),
-            $cacheTool
+            $cache
         );
     }
 
@@ -343,8 +343,8 @@ class UserControllerTest extends TestCase
             UserVoter::DELETE,
             true
         );
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([UserController::TAG_CACHE_LIST])
         ;
@@ -352,7 +352,7 @@ class UserControllerTest extends TestCase
         $response = $controller->deleteUserAction(
             $user,
             $manager->reveal(),
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -371,8 +371,8 @@ class UserControllerTest extends TestCase
             UserVoter::DELETE,
             false
         );
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->never())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->never())
             ->method("invalidateTags")
             ->with([UserController::TAG_CACHE_LIST])
         ;
@@ -381,7 +381,7 @@ class UserControllerTest extends TestCase
         $controller->deleteUserAction(
             $user,
             $manager->reveal(),
-            $cacheTool
+            $cache
         );
     }
 

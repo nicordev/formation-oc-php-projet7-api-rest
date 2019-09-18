@@ -57,16 +57,35 @@ class HeaderGenerator
         );
     }
 
+    /**
+     * Generate headers for show routes
+     *
+     * @param string $expires
+     * @param $entity
+     * @return array
+     * @throws \Exception
+     */
     public static function generateShowHeaders(string $expires, $entity)
     {
+        $entityClassParts = explode('\\', get_class($entity));
+        $entityClass = end($entityClassParts);
+
         return self::generateHeaders(
             $expires,
-            "Customer{$entity->getId()}{$entity->getUpdatedAt()->getTimestamp()}",
+            "{$entityClass}{$entity->getId()}{$entity->getUpdatedAt()->getTimestamp()}",
             $entity->getUpdatedAt(),
             true
         );
     }
 
+    /**
+     * Generate headers for list headers
+     *
+     * @param string $expires
+     * @param string $entityName
+     * @return array
+     * @throws \Exception
+     */
     public static function generateListHeaders(string $expires, string $entityName)
     {
         $now = new \DateTime();

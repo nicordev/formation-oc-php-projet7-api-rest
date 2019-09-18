@@ -6,12 +6,32 @@ namespace App\Helper\Cache;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class CacheTool
+class Cache
 {
     /**
      * @var TagAwareCacheInterface
      */
     public $cache;
+
+    public const ROUTES_TO_CACHE = [
+        "product_show_id",
+        "product_list",
+        "customer_show",
+        "customer_list",
+        "user_show_id",
+        "user_list"
+    ];
+    public const PRIVATE_ROUTES = [
+        "customer_show",
+        "customer_list",
+        "user_show_id",
+        "user_list"
+    ];
+    public const INVALIDATION_PREFIXES = [
+        "create",
+        "edit",
+        "delete"
+    ];
 
     public function __construct(TagAwareCacheInterface $cache)
     {
@@ -104,5 +124,27 @@ class CacheTool
         }
 
         return false;
+    }
+
+    /**
+     * Check if a route can be save in the cache
+     *
+     * @param string $route
+     * @return bool
+     */
+    public function canBeCached(string $route)
+    {
+        return in_array($route, self::ROUTES_TO_CACHE);
+    }
+
+    /**
+     * Check if a route is private (only a specific user can access it)
+     *
+     * @param string $route
+     * @return bool
+     */
+    public function isPrivate(string $route)
+    {
+        return in_array($route, self::PRIVATE_ROUTES);
     }
 }

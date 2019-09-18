@@ -6,7 +6,7 @@ namespace App\Tests\Controller;
 use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Helper\Cache\CacheTool;
+use App\Helper\Cache\Cache;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
 use App\Security\CustomerVoter;
@@ -153,8 +153,8 @@ class CustomerControllerTest extends TestCase
             ->expects($this->once())
             ->method("flush")
         ;
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([CustomerController::TAG_CACHE_LIST])
         ;
@@ -163,7 +163,7 @@ class CustomerControllerTest extends TestCase
             $customer,
             $manager,
             $violations,
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -197,8 +197,8 @@ class CustomerControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([CustomerController::TAG_CACHE_LIST])
         ;
@@ -207,7 +207,7 @@ class CustomerControllerTest extends TestCase
             $customer,
             $modifiedCustomer,
             $manager,
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -241,8 +241,8 @@ class CustomerControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->never())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->never())
             ->method("invalidateTags")
             ->with([CustomerController::TAG_CACHE_LIST])
         ;
@@ -252,7 +252,7 @@ class CustomerControllerTest extends TestCase
             $customer,
             $modifiedCustomer,
             $manager,
-            $cacheTool
+            $cache
         );
     }
 
@@ -268,8 +268,8 @@ class CustomerControllerTest extends TestCase
             CustomerVoter::DELETE,
             true
         );
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->once())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->once())
             ->method("invalidateTags")
             ->with([CustomerController::TAG_CACHE_LIST])
         ;
@@ -277,7 +277,7 @@ class CustomerControllerTest extends TestCase
         $response = $controller->deleteCustomerAction(
             $customer,
             $manager->reveal(),
-            $cacheTool
+            $cache
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -290,8 +290,8 @@ class CustomerControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($customer)->shouldNotBeCalled();
         $manager->flush()->shouldNotBeCalled();
-        $cacheTool = $this->createMock(CacheTool::class);
-        $cacheTool->expects($this->never())
+        $cache = $this->createMock(Cache::class);
+        $cache->expects($this->never())
             ->method("invalidateTags")
             ->with([CustomerController::TAG_CACHE_LIST])
         ;
@@ -306,7 +306,7 @@ class CustomerControllerTest extends TestCase
         $controller->deleteCustomerAction(
             $customer,
             $manager->reveal(),
-            $cacheTool
+            $cache
         );
     }
 

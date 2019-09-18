@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Helper\Cache;
+namespace App\Helper\CacheKeyGenerator;
 
 
+use App\Helper\Cache\Cache;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -12,13 +13,18 @@ class CacheKeyGenerator
      * @var RouterInterface
      */
     private $router;
+    /**
+     * @var Cache
+     */
+    private $cache;
 
     public const KEY_PARTS_INNER_SEPARATOR = '.';
     public const KEY_PARTS_OUTER_SEPARATOR = '|';
 
-    public function __construct(RouterInterface $router)
+    public function __construct(RouterInterface $router, Cache $cache)
     {
         $this->router = $router;
+        $this->cache = $cache;
     }
 
     /**
@@ -32,7 +38,6 @@ class CacheKeyGenerator
      */
     public function generateKeyFromRequest(
         Request $request,
-        array $privateRoutes = [],
         ?string &$route = null,
         ?string &$jwt = null
     ) {
@@ -42,7 +47,7 @@ class CacheKeyGenerator
         $keyParts[] = implode(self::KEY_PARTS_INNER_SEPARATOR, $routeParts);
         $keyParts[] = implode(self::KEY_PARTS_INNER_SEPARATOR, $parameters);
 
-        if (in_array($routeParts["_route"], $privateRoutes)) {
+        if ($this->cache->isPrivate($routeParts["_route"])) {
             $jwt = $this->extractUserTokenFromRequest($request);
             $keyParts[] = $jwt;
         }

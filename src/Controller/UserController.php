@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
+use App\Annotation\CacheTool;
 use App\Entity\User;
-use App\Helper\Cache\CacheTool;
+use App\Helper\Cache\Cache;
 use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
@@ -19,7 +20,6 @@ use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -47,17 +47,15 @@ class UserController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Return the detail of a user"
      * )
+     * @CacheTool(
+     *     isCacheable = true
+     * )
      */
     public function getUserAction(User $user)
     {
         $this->denyAccessUnlessGranted(UserVoter::READ, $user);
 
-        $headers = HeaderGenerator::generateShowHeaders(
-            self::CACHE_EXPIRATION,
-            $user
-        );
-
-        return $this->view($user, Response::HTTP_OK ,$headers);
+        return $this->view($user, Response::HTTP_OK);
     }
 
     /**
@@ -83,6 +81,9 @@ class UserController extends AbstractFOSRestController
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all users (admin only)"
+     * )
+     * @CacheTool(
+     *     isCacheable = true
      * )
      */
     public function getUsersAction(
@@ -122,12 +123,7 @@ class UserController extends AbstractFOSRestController
             $paginatedUsers[UserRepository::KEY_PAGING_PAGES_COUNT]
         );
 
-        $headers = HeaderGenerator::generateListHeaders(
-            self::CACHE_EXPIRATION,
-            "User"
-        );
-
-        return $this->view($paginatedRepresentation, Response::HTTP_OK, $headers);
+        return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
     /**
@@ -155,7 +151,7 @@ class UserController extends AbstractFOSRestController
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
         UserPasswordEncoderInterface $encoder,
-        CacheTool $cacheTool
+        Cache $cache
     ) {
         $this->denyAccessUnlessGranted(UserVoter::CREATE);
 
@@ -170,7 +166,7 @@ class UserController extends AbstractFOSRestController
         $manager->flush();
         $newUser->setPassword(null);
         // Cache
-        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newUser, Response::HTTP_CREATED);
     }
@@ -197,7 +193,7 @@ class UserController extends AbstractFOSRestController
         User $modifiedUser,
         EntityManagerInterface $manager,
         UserPasswordEncoderInterface $encoder,
-        CacheTool $cacheTool
+        Cache $cache
     ) {
         $this->denyAccessUnlessGranted(UserVoter::UPDATE, $user);
 
@@ -218,7 +214,7 @@ class UserController extends AbstractFOSRestController
         $manager->flush();
         $user->setPassword(null);
         // Cache
-        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($user, Response::HTTP_OK);
     }
@@ -241,7 +237,7 @@ class UserController extends AbstractFOSRestController
     public function deleteUserAction(
         User $user,
         EntityManagerInterface $manager,
-        CacheTool $cacheTool
+        Cache $cache
     )
     {
         $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
@@ -250,7 +246,7 @@ class UserController extends AbstractFOSRestController
         $manager->remove($user);
         $manager->flush();
         // Cache
-        $cacheTool->invalidateTags([self::TAG_CACHE_LIST]);
+        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view(null, Response::HTTP_OK);
     }
