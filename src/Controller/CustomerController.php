@@ -4,8 +4,6 @@ namespace App\Controller;
 
 use App\Annotation\CacheTool;
 use App\Entity\Customer;
-use App\Helper\Cache\Cache;
-use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
@@ -14,15 +12,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Swagger\Annotations as SWG;
@@ -30,9 +25,6 @@ use Swagger\Annotations as SWG;
 class CustomerController extends AbstractFOSRestController
 {
     use ViolationsTrait;
-
-    public const TAG_CACHE_LIST = "customer_list";
-    public const CACHE_EXPIRATION = "+10 minutes";
 
     /**
      * Get the detail of a customer of your shop
@@ -145,20 +137,20 @@ class CustomerController extends AbstractFOSRestController
      *     response = 201,
      *     description = "Return the list of all customers of the current user"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"customer_list"}
+     * )
      */
     public function createCustomerAction(
         Customer $newCustomer,
         EntityManagerInterface $manager,
-        ConstraintViolationListInterface $violations,
-        Cache $cache
+        ConstraintViolationListInterface $violations
     ) {
         $this->handleViolations($violations);
 
         $newCustomer->setUser($this->getUser());
         $manager->persist($newCustomer);
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newCustomer, Response::HTTP_CREATED);
     }
@@ -177,12 +169,14 @@ class CustomerController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Update a customer of the current user"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"customer_list"}
+     * )
      */
     public function editCustomerAction(
         Customer $customer,
         Customer $modifiedCustomer,
-        EntityManagerInterface $manager,
-        Cache $cache
+        EntityManagerInterface $manager
     ) {
         $this->denyAccessUnlessGranted(CustomerVoter::UPDATE, $customer);
 
@@ -200,8 +194,6 @@ class CustomerController extends AbstractFOSRestController
         }
 
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($customer, Response::HTTP_OK);
     }
@@ -218,18 +210,18 @@ class CustomerController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Delete a customer of the current user"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"customer_list"}
+     * )
      */
     public function deleteCustomerAction(
         Customer $customer,
-        EntityManagerInterface $manager,
-        Cache $cache
+        EntityManagerInterface $manager
     ) {
         $this->denyAccessUnlessGranted(CustomerVoter::DELETE, $customer);
 
         $manager->remove($customer);
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view(null, Response::HTTP_OK);
     }

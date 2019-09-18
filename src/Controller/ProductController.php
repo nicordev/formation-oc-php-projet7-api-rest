@@ -6,7 +6,7 @@ namespace App\Controller;
 use App\Annotation\CacheTool;
 use App\Entity\Product;
 use App\Exception\ResourceValidationException;
-use App\Helper\AnnotationTool\AnnotationTool;
+use App\Helper\AnnotationReadingTool\AnnotationTool;
 use App\Helper\Cache\Cache;
 use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
@@ -33,9 +33,6 @@ class ProductController extends AbstractFOSRestController
 {
     use ViolationsTrait;
 
-    public const TAG_CACHE_LIST = "product_list";
-    public const CACHE_EXPIRATION = "+10 minutes";
-
     /**
      * Consult the detail of a particular phone
      *
@@ -51,19 +48,10 @@ class ProductController extends AbstractFOSRestController
      * )
      * @CacheTool(
      *     isCacheable = true
- *     )
+     * )
      */
     public function getProductAction(Product $product)
     {
-        $annotations[] = AnnotationTool::getClassAnnotation(Product::class);
-        $annotations[] = AnnotationTool::getMethod(self::class, "getProductAction");
-        $annotations[] = AnnotationTool::getPropertyAnnotation(Product::class, "model");
-
-//        $headers = HeaderGenerator::generateShowHeaders(
-//            self::CACHE_EXPIRATION,
-//            $product
-//        );
-
         return $this->view($product, Response::HTTP_OK);
     }
 
@@ -113,6 +101,9 @@ class ProductController extends AbstractFOSRestController
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
+     * )
+     * @CacheTool(
+     *     isCacheable = true
      * )
      */
     public function getProductsAction(
@@ -173,11 +164,6 @@ class ProductController extends AbstractFOSRestController
             $paginatedProducts[ProductRepository::KEY_PAGING_ITEMS_COUNT]
         );
 
-//        $headers = HeaderGenerator::generateListHeaders(
-//            self::CACHE_EXPIRATION,
-//            "Product"
-//        );
-
         return $this->view($paginatedRepresentation, Response::HTTP_OK);
     }
 
@@ -201,19 +187,19 @@ class ProductController extends AbstractFOSRestController
      *     response = 201,
      *     description = "Create a product (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"product_list"}
+     * )
      */
     public function createProductAction(
         Product $newProduct,
         EntityManagerInterface $manager,
-        ConstraintViolationListInterface $violations,
-        Cache $cache
+        ConstraintViolationListInterface $violations
     ) {
         $this->handleViolations($violations);
 
         $manager->persist($newProduct);
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newProduct, Response::HTTP_CREATED);
     }
@@ -233,12 +219,14 @@ class ProductController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Update a product (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"product_list"}
+     * )
      */
     public function editProductAction(
         Product $product,
         Product $modifiedProduct,
-        EntityManagerInterface $manager,
-        Cache $cache
+        EntityManagerInterface $manager
     ) {
         if ($modifiedProduct->getBrand() !== null) {
             $product->setBrand($modifiedProduct->getBrand());
@@ -254,8 +242,6 @@ class ProductController extends AbstractFOSRestController
         }
 
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($product, Response::HTTP_OK);
     }
@@ -273,16 +259,16 @@ class ProductController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Delete a product (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"product_list"}
+     * )
      */
     public function deleteProductAction(
         Product $product,
-        EntityManagerInterface $manager,
-        Cache $cache
+        EntityManagerInterface $manager
     ) {
         $manager->remove($product);
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return  $this->view(null, Response::HTTP_OK);
     }

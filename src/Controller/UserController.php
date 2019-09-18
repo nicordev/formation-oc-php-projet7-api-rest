@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Annotation\CacheTool;
 use App\Entity\User;
 use App\Helper\Cache\Cache;
-use App\Helper\HeaderGenerator;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
@@ -20,7 +19,6 @@ use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Swagger\Annotations as SWG;
@@ -28,9 +26,6 @@ use Swagger\Annotations as SWG;
 class UserController extends AbstractFOSRestController
 {
     use ViolationsTrait;
-
-    public const CACHE_EXPIRATION = "+10 minutes";
-    public const TAG_CACHE_LIST = "user_list";
 
     /**
      * Get the profile of a user.
@@ -145,13 +140,15 @@ class UserController extends AbstractFOSRestController
      *     response = 201,
      *     description = "Create a user (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"user_list"}
+     * )
      */
     public function createUserAction(
         User $newUser,
         EntityManagerInterface $manager,
         ConstraintViolationListInterface $violations,
-        UserPasswordEncoderInterface $encoder,
-        Cache $cache
+        UserPasswordEncoderInterface $encoder
     ) {
         $this->denyAccessUnlessGranted(UserVoter::CREATE);
 
@@ -165,8 +162,6 @@ class UserController extends AbstractFOSRestController
         $manager->persist($newUser);
         $manager->flush();
         $newUser->setPassword(null);
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($newUser, Response::HTTP_CREATED);
     }
@@ -187,13 +182,15 @@ class UserController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Update the current user"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"user_list"}
+     * )
      */
     public function editUserAction(
         User $user,
         User $modifiedUser,
         EntityManagerInterface $manager,
-        UserPasswordEncoderInterface $encoder,
-        Cache $cache
+        UserPasswordEncoderInterface $encoder
     ) {
         $this->denyAccessUnlessGranted(UserVoter::UPDATE, $user);
 
@@ -213,8 +210,6 @@ class UserController extends AbstractFOSRestController
 
         $manager->flush();
         $user->setPassword(null);
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view($user, Response::HTTP_OK);
     }
@@ -233,11 +228,13 @@ class UserController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Delete the current user"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"user_list"}
+     * )
      */
     public function deleteUserAction(
         User $user,
-        EntityManagerInterface $manager,
-        Cache $cache
+        EntityManagerInterface $manager
     )
     {
         $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
@@ -245,8 +242,6 @@ class UserController extends AbstractFOSRestController
         $id = $user->getId();
         $manager->remove($user);
         $manager->flush();
-        // Cache
-        $cache->invalidateTags([self::TAG_CACHE_LIST]);
 
         return $this->view(null, Response::HTTP_OK);
     }

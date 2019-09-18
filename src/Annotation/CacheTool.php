@@ -11,4 +11,5 @@ namespace App\Annotation;
 class CacheTool
 {
     public $isCacheable = false;
+    public $tagsToInvalidate = [];
 }

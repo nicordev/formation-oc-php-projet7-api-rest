@@ -38,6 +38,11 @@ services:
             -
                 {
                     name: kernel.event_listener,
+                    event: kernel.controller
+                }
+            -
+                {
+                    name: kernel.event_listener,
                     event: kernel.view,
                     priority: 100
                 }

@@ -3,9 +3,12 @@
 namespace App\EventListener;
 
 
+use App\Annotation\CacheTool;
+use App\Helper\AnnotationReadingTool\AnnotationReadingTool;
 use App\Helper\CacheKeyGenerator\CacheKeyGenerator;
 use App\Helper\Cache\Cache;
 use App\Helper\HeaderGenerator;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -34,21 +37,34 @@ class HttpCacheListener
      */
     private $canBeCachedRegardingToRequest = true;
     /**
-     * @var void
+     * @var string
      */
     private $tag;
+    /**
+     * @var string
+     */
     private $requestedRoute;
+    /**
+     * @var AnnotationReadingTool
+     */
+    private $annotationReadingTool;
+    /**
+     * @var CacheTool
+     */
+    private $cacheToolAnnotation;
 
     public const CACHE_EXPIRATION = "+10 minutes";
 
     public function __construct(
         RouterInterface $router,
         Cache $cache,
-        CacheKeyGenerator $keyGenerator
+        CacheKeyGenerator $keyGenerator,
+        AnnotationReadingTool $annotationReadingTool
     ) {
         $this->router = $router;
         $this->cache = $cache;
         $this->keyGenerator = $keyGenerator;
+        $this->annotationReadingTool = $annotationReadingTool;
     }
 
     /**
@@ -83,18 +99,29 @@ class HttpCacheListener
         }
     }
 
+    public function onKernelController(ControllerEvent $event)
+    {
+        $controllerAndMethod = $event->getController();
+        $this->cacheToolAnnotation = $this->annotationReadingTool->getMethodAnnotation(
+            CacheTool::class,
+            get_class($controllerAndMethod[0]),
+            $controllerAndMethod[1]
+        );
+    }
+
     /**
      * Add headers and invalidate tags
      *
      * @param ViewEvent $event
      * @throws \Exception
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function onKernelView(ViewEvent $event)
     {
         $view = $event->getControllerResult();
         $data = $view->getData();
 
-        // Headers
+        // Generate headers
         if ($this->canBeCachedRegardingToRequest) {
             if (strpos($this->requestedRoute, "show") !== false) {
                 $headers = HeaderGenerator::generateShowHeaders(
@@ -112,6 +139,11 @@ class HttpCacheListener
             if (isset($headers)) {
                 $view->setHeaders($headers);
             };
+        }
+
+        // Invalidate tags
+        if (!empty($this->cacheToolAnnotation->tagsToInvalidate)) {
+            $this->cache->invalidateTags($this->cacheToolAnnotation->tagsToInvalidate);
         }
     }
 

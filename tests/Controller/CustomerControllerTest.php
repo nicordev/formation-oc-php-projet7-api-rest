@@ -6,7 +6,6 @@ namespace App\Tests\Controller;
 use App\Controller\CustomerController;
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Helper\Cache\Cache;
 use App\Repository\CustomerRepository;
 use App\Repository\PaginatedRepository;
 use App\Security\CustomerVoter;
@@ -153,17 +152,11 @@ class CustomerControllerTest extends TestCase
             ->expects($this->once())
             ->method("flush")
         ;
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([CustomerController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->createCustomerAction(
             $customer,
             $manager,
-            $violations,
-            $cache
+            $violations
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -197,17 +190,11 @@ class CustomerControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([CustomerController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->editCustomerAction(
             $customer,
             $modifiedCustomer,
-            $manager,
-            $cache
+            $manager
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -241,18 +228,12 @@ class CustomerControllerTest extends TestCase
             ->method("persist");
         $manager->expects($this->never())
             ->method("remove");
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->never())
-            ->method("invalidateTags")
-            ->with([CustomerController::TAG_CACHE_LIST])
-        ;
 
         $this->expectException(AccessDeniedException::class);
         $controller->editCustomerAction(
             $customer,
             $modifiedCustomer,
-            $manager,
-            $cache
+            $manager
         );
     }
 
@@ -268,16 +249,10 @@ class CustomerControllerTest extends TestCase
             CustomerVoter::DELETE,
             true
         );
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([CustomerController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->deleteCustomerAction(
             $customer,
-            $manager->reveal(),
-            $cache
+            $manager->reveal()
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -290,11 +265,6 @@ class CustomerControllerTest extends TestCase
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->remove($customer)->shouldNotBeCalled();
         $manager->flush()->shouldNotBeCalled();
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->never())
-            ->method("invalidateTags")
-            ->with([CustomerController::TAG_CACHE_LIST])
-        ;
         $controller = $this->createCustomerController(
             new User,
             $customer,
@@ -305,8 +275,7 @@ class CustomerControllerTest extends TestCase
         $this->expectException(AccessDeniedException::class);
         $controller->deleteCustomerAction(
             $customer,
-            $manager->reveal(),
-            $cache
+            $manager->reveal()
         );
     }
 

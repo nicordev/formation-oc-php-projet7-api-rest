@@ -3,11 +3,9 @@
 namespace App\Tests\Controller;
 
 
-use App\Controller\ProductController;
 use App\Controller\UserController;
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Helper\Cache\Cache;
 use App\Repository\PaginatedRepository;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
@@ -181,18 +179,12 @@ class UserControllerTest extends TestCase
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([UserController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->createUserAction(
             $user,
             $manager->reveal(),
             $violations,
-            $encoder->reveal(),
-            $cache
+            $encoder->reveal()
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -220,19 +212,13 @@ class UserControllerTest extends TestCase
             ->encodePassword($user, $user->getPassword())
             ->shouldNotBeCalled()
         ;
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->never())
-            ->method("invalidateTags")
-            ->with([UserController::TAG_CACHE_LIST])
-        ;
 
         $this->expectException(AccessDeniedException::class);
         $controller->createUserAction(
             $user,
             $manager->reveal(),
             $violations,
-            $encoder->reveal(),
-            $cache
+            $encoder->reveal()
         );
     }
 
@@ -265,18 +251,12 @@ class UserControllerTest extends TestCase
             ->willReturn("encoded-password")
             ->shouldBeCalled()
         ;
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([UserController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->editUserAction(
             $user,
             $modifiedUser,
             $manager,
-            $encoder->reveal(),
-            $cache
+            $encoder->reveal()
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -315,19 +295,13 @@ class UserControllerTest extends TestCase
             ->encodePassword($modifiedUser, $modifiedUser->getPassword())
             ->shouldNotBeCalled()
         ;
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->never())
-            ->method("invalidateTags")
-            ->with([UserController::TAG_CACHE_LIST])
-        ;
 
         $this->expectException(AccessDeniedException::class);
         $controller->editUserAction(
             $user,
             $modifiedUser,
             $manager,
-            $encoder->reveal(),
-            $cache
+            $encoder->reveal()
         );
     }
 
@@ -343,16 +317,10 @@ class UserControllerTest extends TestCase
             UserVoter::DELETE,
             true
         );
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->once())
-            ->method("invalidateTags")
-            ->with([UserController::TAG_CACHE_LIST])
-        ;
 
         $response = $controller->deleteUserAction(
             $user,
-            $manager->reveal(),
-            $cache
+            $manager->reveal()
         );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
@@ -371,17 +339,11 @@ class UserControllerTest extends TestCase
             UserVoter::DELETE,
             false
         );
-        $cache = $this->createMock(Cache::class);
-        $cache->expects($this->never())
-            ->method("invalidateTags")
-            ->with([UserController::TAG_CACHE_LIST])
-        ;
 
         $this->expectException(AccessDeniedException::class);
         $controller->deleteUserAction(
             $user,
-            $manager->reveal(),
-            $cache
+            $manager->reveal()
         );
     }
 
