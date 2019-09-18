@@ -4,6 +4,7 @@ namespace App\EventListener;
 
 
 use App\Annotation\CacheTool;
+use App\Controller\CacheController;
 use App\Helper\AnnotationReadingTool\AnnotationReadingTool;
 use App\Helper\CacheKeyGenerator\CacheKeyGenerator;
 use App\Helper\Cache\Cache;
@@ -35,7 +36,7 @@ class HttpCacheListener
     /**
      * @var bool
      */
-    private $canBeCachedRegardingToRequest = true;
+    private $isCacheable = true;
     /**
      * @var string
      */
@@ -68,37 +69,13 @@ class HttpCacheListener
     }
 
     /**
-     * Generate a key and try to return a matching item from the cache
+     * Invalidate tags, generate a key and try to return a matching item from the cache
      *
-     * @param RequestEvent $event
-     * @return bool
+     * @param ControllerEvent $event
+     * @return void
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \ReflectionException
      */
-    public function onKernelRequest(RequestEvent $event)
-    {
-        $request = $event->getRequest();
-        $this->cacheItemKey = $this->keyGenerator->generateKeyFromRequest(
-            $request,
-            $this->requestedRoute
-        );
-        $this->tag = $this->cache->generateTag($this->requestedRoute);
-
-        if (!$this->cache->canBeCached($this->requestedRoute)) {
-            $this->canBeCachedRegardingToRequest = false;
-
-            return;
-        }
-
-        $cachedItem = $this->cache->getItemFromCache($this->cacheItemKey);
-
-        if ($cachedItem) {
-            $cachedResponse = $cachedItem->get();
-            $this->canBeCachedRegardingToRequest = false;
-            $event->setResponse($cachedResponse);
-
-            return $cachedResponse;
-        }
-    }
-
     public function onKernelController(ControllerEvent $event)
     {
         $controllerAndMethod = $event->getController();
@@ -107,22 +84,45 @@ class HttpCacheListener
             get_class($controllerAndMethod[0]),
             $controllerAndMethod[1]
         );
+
+        if (!empty($this->cacheToolAnnotation->tagsToInvalidate)) {
+            $this->cache->invalidateTags($this->cacheToolAnnotation->tagsToInvalidate);
+        }
+
+        if (!$this->cacheToolAnnotation->isCacheable) {
+            $this->isCacheable = false;
+            return;
+        }
+
+        $request = $event->getRequest();
+        $this->cacheItemKey = $this->keyGenerator->generateKeyFromRequest(
+            $request,
+            $this->cacheToolAnnotation->isPrivate,
+            $this->requestedRoute
+        );
+        $this->tag = $this->cache->generateTag($this->requestedRoute);
+        $cachedItem = $this->cache->getItemFromCache($this->cacheItemKey);
+
+        if ($cachedItem) {
+            $cachedResponse = $cachedItem->get();
+            $this->isCacheable = false;
+            $cacheController = new CacheController($cachedResponse);
+            $event->setController([$cacheController, "sendResponse"]);
+        }
     }
 
     /**
-     * Add headers and invalidate tags
+     * Add headers
      *
      * @param ViewEvent $event
      * @throws \Exception
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function onKernelView(ViewEvent $event)
     {
-        $view = $event->getControllerResult();
-        $data = $view->getData();
+        if ($this->isCacheable) {
+            $view = $event->getControllerResult();
+            $data = $view->getData();
 
-        // Generate headers
-        if ($this->canBeCachedRegardingToRequest) {
             if (strpos($this->requestedRoute, "show") !== false) {
                 $headers = HeaderGenerator::generateShowHeaders(
                     self::CACHE_EXPIRATION,
@@ -140,11 +140,6 @@ class HttpCacheListener
                 $view->setHeaders($headers);
             };
         }
-
-        // Invalidate tags
-        if (!empty($this->cacheToolAnnotation->tagsToInvalidate)) {
-            $this->cache->invalidateTags($this->cacheToolAnnotation->tagsToInvalidate);
-        }
     }
 
     /**
@@ -155,7 +150,7 @@ class HttpCacheListener
      */
     public function onKernelResponse(ResponseEvent $event)
     {
-        if ($this->canBeCachedRegardingToRequest) {
+        if ($this->isCacheable) {
             $response = $event->getResponse();
 
             if ($this->cache->canBeCachedRegardingToCacheControlHeader($response)) {

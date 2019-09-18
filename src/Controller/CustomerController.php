@@ -40,7 +40,8 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Return the detail of a customer"
      * )
      * @CacheTool(
-     *     isCacheable = true
+     *     isCacheable = true,
+     *     isPrivate = true
      * )
      */
     public function getCustomerAction(Customer $customer)
@@ -75,7 +76,8 @@ class CustomerController extends AbstractFOSRestController
      *     description = "Return the list of all customers of the current user"
      * )
      * @CacheTool(
-     *     isCacheable = true
+     *     isCacheable = true,
+     *     isPrivate = true
      * )
      */
     public function getCustomersAction(

@@ -13,31 +13,27 @@ class CacheKeyGenerator
      * @var RouterInterface
      */
     private $router;
-    /**
-     * @var Cache
-     */
-    private $cache;
 
     public const KEY_PARTS_INNER_SEPARATOR = '.';
     public const KEY_PARTS_OUTER_SEPARATOR = '|';
 
-    public function __construct(RouterInterface $router, Cache $cache)
+    public function __construct(RouterInterface $router)
     {
         $this->router = $router;
-        $this->cache = $cache;
     }
 
     /**
      * Generate a key from a request and can fill route and jwt variables
      *
      * @param Request $request
-     * @param array $privateRoutes
+     * @param bool $isPrivate
      * @param string|null $route
      * @param string|null $jwt
      * @return string
      */
     public function generateKeyFromRequest(
         Request $request,
+        bool $isPrivate = false,
         ?string &$route = null,
         ?string &$jwt = null
     ) {
@@ -47,7 +43,7 @@ class CacheKeyGenerator
         $keyParts[] = implode(self::KEY_PARTS_INNER_SEPARATOR, $routeParts);
         $keyParts[] = implode(self::KEY_PARTS_INNER_SEPARATOR, $parameters);
 
-        if ($this->cache->isPrivate($routeParts["_route"])) {
+        if ($isPrivate) {
             $jwt = $this->extractUserTokenFromRequest($request);
             $keyParts[] = $jwt;
         }
