@@ -28,3 +28,7 @@ services:
 
     App\Controller\CacheController:
         autowire: false
+
+    App\EventListener\HttpCacheListener:
+        arguments:
+            $cacheExpiration: '%env(CACHE_EXPIRATION)%'

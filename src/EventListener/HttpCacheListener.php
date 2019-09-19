@@ -19,33 +19,6 @@ use Symfony\Component\Routing\RouterInterface;
 class HttpCacheListener implements EventSubscriberInterface
 {
     /**
-     * Returns an array of event names this subscriber wants to listen to.
-     *
-     * The array keys are event names and the value can be:
-     *
-     *  * The method name to call (priority defaults to 0)
-     *  * An array composed of the method name to call and the priority
-     *  * An array of arrays composed of the method names to call and respective
-     *    priorities, or 0 if unset
-     *
-     * For instance:
-     *
-     *  * ['eventName' => 'methodName']
-     *  * ['eventName' => ['methodName', $priority]]
-     *  * ['eventName' => [['methodName1', $priority], ['methodName2']]]
-     *
-     * @return array The event names to listen to
-     */
-    public static function getSubscribedEvents()
-    {
-        return [
-            "kernel.controller" => "onKernelController",
-            "kernel.view" => ["onKernelView", 100],
-            "kernel.response" => "onKernelResponse"
-        ];
-    }
-
-    /**
      * @var RouterInterface
      */
     private $router;
@@ -77,25 +50,56 @@ class HttpCacheListener implements EventSubscriberInterface
      * @var CacheTool
      */
     private $cacheToolAnnotation;
-
-    public const CACHE_EXPIRATION = "+10 minutes";
     /**
      * @var CacheTagMaker
      */
     private $cacheTagMaker;
+    /**
+     * @var string
+     */
+    private $cacheExpiration;
 
     public function __construct(
         RouterInterface $router,
         Cache $cache,
         CacheKeyGenerator $keyGenerator,
         AnnotationReadingTool $annotationReadingTool,
-        CacheTagMaker $cacheTagMaker
+        CacheTagMaker $cacheTagMaker,
+        string $cacheExpiration
     ) {
         $this->router = $router;
         $this->cache = $cache;
         $this->keyGenerator = $keyGenerator;
         $this->annotationReadingTool = $annotationReadingTool;
         $this->cacheTagMaker = $cacheTagMaker;
+        $this->cacheExpiration = $cacheExpiration;
+    }
+
+    /**
+     * Returns an array of event names this subscriber wants to listen to.
+     *
+     * The array keys are event names and the value can be:
+     *
+     *  * The method name to call (priority defaults to 0)
+     *  * An array composed of the method name to call and the priority
+     *  * An array of arrays composed of the method names to call and respective
+     *    priorities, or 0 if unset
+     *
+     * For instance:
+     *
+     *  * ['eventName' => 'methodName']
+     *  * ['eventName' => ['methodName', $priority]]
+     *  * ['eventName' => [['methodName1', $priority], ['methodName2']]]
+     *
+     * @return array The event names to listen to
+     */
+    public static function getSubscribedEvents()
+    {
+        return [
+            "kernel.controller" => "onKernelController",
+            "kernel.view" => ["onKernelView", 100],
+            "kernel.response" => "onKernelResponse"
+        ];
     }
 
     /**
@@ -172,13 +176,13 @@ class HttpCacheListener implements EventSubscriberInterface
 
             if (strpos($this->requestedRoute, "show") !== false) {
                 $headers = HeaderGenerator::generateShowHeaders(
-                    self::CACHE_EXPIRATION,
+                    $this->cacheExpiration,
                     $data
                 );
             } elseif (strpos($this->requestedRoute, "list") !== false) {
                 $entity = explode("_", $this->requestedRoute)[0];
                 $headers = HeaderGenerator::generateListHeaders(
-                    self::CACHE_EXPIRATION,
+                    $this->cacheExpiration,
                     $entity
                 );
             }
