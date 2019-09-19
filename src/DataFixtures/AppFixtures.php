@@ -80,24 +80,24 @@ class AppFixtures extends Fixture
         }
 
         // Demo user
-        $demoUser = new User();
-        $demoUser->setEmail("user@demo.com")
+        $user = new User();
+        $user->setEmail("user@demo.com")
             ->setPassword(self::HASHED_PASSWORD)
             ->setName("Demo User")
             ->setRoles(["ROLE_USER"]);
-        $this->manager->persist($demoUser);
-        $this->demoUser = $demoUser;
+        $this->manager->persist($user);
+        $this->demoUser = $user;
 
         $this->manager->flush();
 
         // Demo admin
-        $demoAdmin = new User();
-        $demoAdmin->setEmail("admin@demo.com")
+        $admin = new User();
+        $admin->setEmail("admin@demo.com")
             ->setPassword(self::HASHED_PASSWORD)
             ->setName("Demo Admin")
             ->setRoles(["ROLE_ADMIN"]);
-        $this->manager->persist($demoAdmin);
-        $this->demoAdmin = $demoAdmin;
+        $this->manager->persist($admin);
+        $this->demoAdmin = $admin;
 
         $this->manager->flush();
     }

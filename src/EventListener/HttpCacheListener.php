@@ -152,7 +152,7 @@ class HttpCacheListener
 
             if (isset($headers)) {
                 $view->setHeaders($headers);
-            };
+            }
         }
     }
 

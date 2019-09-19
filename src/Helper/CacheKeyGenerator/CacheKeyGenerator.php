@@ -48,9 +48,7 @@ class CacheKeyGenerator
             $keyParts[] = $jwt;
         }
 
-        $key = implode(self::KEY_PARTS_OUTER_SEPARATOR, $keyParts);
-
-        return $key;
+        return implode(self::KEY_PARTS_OUTER_SEPARATOR, $keyParts);
     }
 
     private function extractRoutePartsFromRequest(Request $request)
