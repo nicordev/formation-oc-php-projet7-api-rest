@@ -242,7 +242,6 @@ class UserController extends AbstractFOSRestController
     ) {
         $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
 
-        $id = $user->getId();
         $manager->remove($user);
         $manager->flush();
 

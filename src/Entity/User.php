@@ -152,11 +152,11 @@ class User implements UserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
+        $userRoles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = self::ROLE_USER;
+        $userRoles[] = self::ROLE_USER;
 
-        return array_unique($roles);
+        return array_unique($userRoles);
     }
 
     public function setRoles(array $roles): self
@@ -195,7 +195,6 @@ class User implements UserInterface
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
     }
 
     public function getName(): ?string

@@ -10,11 +10,11 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class UserVoter extends Voter
 {
-    public const CREATE = "create";
-    public const READ = "read";
-    public const LIST = "list";
-    public const UPDATE = "update";
-    public const DELETE = "delete";
+    public const CREATE = "user-create";
+    public const READ = "user-read";
+    public const LIST = "user-list";
+    public const UPDATE = "user-update";
+    public const DELETE = "user-delete";
 
     public const ACTIONS = [
         self::CREATE,
@@ -48,6 +48,10 @@ class UserVoter extends Voter
             return false;
         }
 
+        if (!$subject instanceof User && !is_null($subject)) {
+            return false;
+        }
+
         return true;
     }
 
@@ -73,25 +77,12 @@ class UserVoter extends Voter
 
         if (in_array($attribute, [self::CREATE, self::LIST])) {
             // The current user must be admin
-            if (in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
-                return true;
-            }
-
-            return false;
-        }
-
-        // The subject must be a User
-        if (!$requestedUser instanceof User) {
-            return false;
+            return in_array(User::ROLE_ADMIN, $currentUser->getRoles());
         }
 
         if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE])) {
             // The current user must be the same as the requested user or must be an admin
-            if ($currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
-                return true;
-            }
-
-            return false;
+            return $currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles());
         }
 
         throw new \LogicException('This code should not be reached!');
