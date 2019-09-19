@@ -18,3 +18,9 @@ framework:
     templating:
         engines:
             twig
+
+    cache:
+        pools:
+            product.cache:
+                adapter: cache.adapter.filesystem
+                tags: true

@@ -89,7 +89,16 @@ class UserControllerTest extends TestCase
         })();
 
         $repository = $this->prophesize(UserRepository::class);
-        $repository->getPage($page, $quantity)
+        $repository->getPage(
+            $page,
+            $quantity,
+            [
+                "id",
+                "name",
+                "email",
+                "roles"
+            ]
+        )
             ->willReturn([
                 PaginatedRepository::KEY_PAGING_ENTITIES => $users,
                 PaginatedRepository::KEY_PAGING_PAGES_COUNT => 3,
@@ -171,7 +180,12 @@ class UserControllerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $response = $controller->createUserAction($user, $manager->reveal(), $violations, $encoder->reveal());
+        $response = $controller->createUserAction(
+            $user,
+            $manager->reveal(),
+            $violations,
+            $encoder->reveal()
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -200,7 +214,12 @@ class UserControllerTest extends TestCase
         ;
 
         $this->expectException(AccessDeniedException::class);
-        $controller->createUserAction($user, $manager->reveal(), $violations, $encoder->reveal());
+        $controller->createUserAction(
+            $user,
+            $manager->reveal(),
+            $violations,
+            $encoder->reveal()
+        );
     }
 
     public function testEditUserAction()
@@ -233,13 +252,18 @@ class UserControllerTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $response = $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+        $response = $controller->editUserAction(
+            $user,
+            $modifiedUser,
+            $manager,
+            $encoder->reveal()
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseUser = $response->getData();
-        $modifiedUser->setPassword("encoded-password");
+        $modifiedUser->setPassword(null);
         $this->checkUser($modifiedUser, $responseUser, false);
     }
 
@@ -273,7 +297,12 @@ class UserControllerTest extends TestCase
         ;
 
         $this->expectException(AccessDeniedException::class);
-        $controller->editUserAction($user, $modifiedUser, $manager, $encoder->reveal());
+        $controller->editUserAction(
+            $user,
+            $modifiedUser,
+            $manager,
+            $encoder->reveal()
+        );
     }
 
     public function testDeleteUserAction()
@@ -289,7 +318,10 @@ class UserControllerTest extends TestCase
             true
         );
 
-        $response = $controller->deleteUserAction($user, $manager->reveal());
+        $response = $controller->deleteUserAction(
+            $user,
+            $manager->reveal()
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -309,7 +341,10 @@ class UserControllerTest extends TestCase
         );
 
         $this->expectException(AccessDeniedException::class);
-        $controller->deleteUserAction($user, $manager->reveal());
+        $controller->deleteUserAction(
+            $user,
+            $manager->reveal()
+        );
     }
 
     // Private
@@ -351,6 +386,8 @@ class UserControllerTest extends TestCase
             ->setEmail($email)
             ->setPassword($password)
             ->setRoles($roles)
+            ->setCreatedAt(new \DateTime())
+            ->setUpdatedAt(new \DateTime())
         ;
 
         if ($id) {

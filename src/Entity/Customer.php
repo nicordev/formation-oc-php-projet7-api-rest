@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
 use JMS\Serializer\Annotation as Serializer;
@@ -18,6 +19,25 @@ use JMS\Serializer\Annotation as Serializer;
  *      ),
  *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
  * )
+ * @Hateoas\Relation(
+ *      "edit",
+ *      href = @Hateoas\Route(
+ *          "customer_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "customer_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(excludeIf = "expr(null === object.getId())")
+ * )
+ * @Serializer\ExclusionPolicy("ALL")
  */
 class Customer
 {
@@ -26,6 +46,8 @@ class Customer
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      * @Serializer\Type("integer")
+     * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $id;
 
@@ -35,6 +57,8 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"customer_create"}
      * )
+     * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $name;
 
@@ -44,6 +68,8 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"customer_create"}
      * )
+     * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $surname;
 
@@ -53,6 +79,8 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"customer_create"}
      * )
+     * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $email;
 
@@ -62,6 +90,8 @@ class Customer
      * @Assert\NotBlank(
      *     groups = {"customer_create"}
      * )
+     * @Serializer\Groups({"customer_detail"})
+     * @Serializer\Expose
      */
     private $address;
 
@@ -70,6 +100,22 @@ class Customer
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;
+
+    /**
+     * @var \DateTime $createdAt
+     *
+     * @Gedmo\Timestampable(on="create")
+     * @ORM\Column(type="datetime")
+     */
+    private $createdAt;
+
+    /**
+     * @var \DateTime $updatedAt
+     *
+     * @Gedmo\Timestampable(on="update")
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $updatedAt;
 
     public function getId(): ?int
     {
@@ -132,6 +178,44 @@ class Customer
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @param \DateTime $createdAt
+     * @return Product
+     */
+    public function setCreatedAt(\DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getUpdatedAt(): \DateTime
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * @param \DateTime $updatedAt
+     * @return Product
+     */
+    public function setUpdatedAt(\DateTime $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }

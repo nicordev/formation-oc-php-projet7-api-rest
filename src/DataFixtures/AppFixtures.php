@@ -29,12 +29,22 @@ class AppFixtures extends Fixture
         "orange.com"
     ];
     private $users = [];
+    /**
+     * @var User
+     */
+    private $demoUser;
+    /**
+     * @var User
+     */
+    private $demoAdmin;
+    private $faker;
 
     private const HASHED_PASSWORD = '$2y$13$qACYre5/bO7y2jW4n8S.m.Es6vjYpz7x8XBhZxBvckcr.VoC5cvqq'; // pwdSucks!0
 
     public function __construct(ParameterBagInterface $parameterBag)
     {
         $this->parameterBag = $parameterBag;
+        $this->faker = Factory::create("fr_FR");
     }
 
     public function load(ObjectManager $manager)
@@ -69,38 +79,52 @@ class AppFixtures extends Fixture
             $this->users[] = $user;
         }
 
-        // Easy to get user
-        $testUser = new User();
-        $testUser->setEmail("user@easy.com")
+        // Demo user
+        $user = new User();
+        $user->setEmail("user@demo.com")
             ->setPassword(self::HASHED_PASSWORD)
-            ->setName("Easy User")
+            ->setName("Demo User")
             ->setRoles(["ROLE_USER"]);
-        $this->manager->persist($testUser);
+        $this->manager->persist($user);
+        $this->demoUser = $user;
 
         $this->manager->flush();
 
-        // Test admin
-        $testAdmin = new User();
-        $testAdmin->setEmail("admin@easy.com")
+        // Demo admin
+        $admin = new User();
+        $admin->setEmail("admin@demo.com")
             ->setPassword(self::HASHED_PASSWORD)
-            ->setName("Easy Admin")
+            ->setName("Demo Admin")
             ->setRoles(["ROLE_ADMIN"]);
-        $this->manager->persist($testAdmin);
+        $this->manager->persist($admin);
+        $this->demoAdmin = $admin;
 
         $this->manager->flush();
     }
 
     private function loadCustomers()
     {
-        $faker = Factory::create("fr_FR");
+        foreach ($this->users as $user) {
+            for ($i = 0; $i < $this->customersCount; $i++) {
+                $customer = new Customer();
+                $customer->setName($this->faker->firstName);
+                $customer->setSurname($this->faker->lastName);
+                $customer->setEmail($this->faker->email);
+                $customer->setAddress($this->faker->address);
+                $customer->setUser($user);
 
+                $this->manager->persist($customer);
+            }
+        }
+        
+        // Demo user
         for ($i = 0; $i < $this->customersCount; $i++) {
             $customer = new Customer();
-            $customer->setName($faker->firstName);
-            $customer->setSurname($faker->lastName);
-            $customer->setEmail($faker->email);
-            $customer->setAddress($faker->address);
-            $customer->setUser($this->users[mt_rand(0, count($this->users) - 1)]);
+            $customer->setName($this->faker->firstName);
+            $customer->setSurname($this->faker->lastName);
+            $customer->setEmail($this->faker->email);
+            $customer->setAddress($this->faker->address);
+            $customer->setUser($this->demoUser);
 
             $this->manager->persist($customer);
         }
@@ -117,7 +141,17 @@ class AppFixtures extends Fixture
     {
         $products = $this->getProductsFromDemo();
 
+        /**
+         * @var Product $product
+         */
         foreach ($products as $product) {
+            $product->setCreatedAt($this->faker->dateTimeBetween("-2 years"));
+            if (mt_rand(0, 3) === 0) {
+                $interval = new \DateInterval("P" . mt_rand(1, 50) . "D");
+                $updatedAt = clone $product->getCreatedAt();
+                $updatedAt->add($interval);
+                $product->setUpdatedAt($updatedAt);
+            }
             $this->manager->persist($product);
         }
 
@@ -156,7 +190,6 @@ class AppFixtures extends Fixture
         $product = new Product();
         $datum->detail = (array) $datum->detail;
         $this->updateProperties($product, $datum);
-        $product->setModel(str_replace(" ", "-", $product->getModel()));
         $product->setQuantity(mt_rand(10, 10000));
         $product->setPrice(mt_rand(10000, 100000));
 

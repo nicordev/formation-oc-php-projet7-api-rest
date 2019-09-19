@@ -5,6 +5,8 @@ php.ini
 server_start
 cov/
 config/jwt/private.pem
+en/
+md/
 
 ###> symfony/framework-bundle ###
 /.env.local

@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -65,23 +66,28 @@ class UserVoter extends Voter
         $currentUser = $token->getUser();
         $requestedUser = $subject;
 
+        // the current user must be logged in; if not, deny access
         if (!$currentUser instanceof User) {
-            // the current user must be logged in; if not, deny access
-            return false;
-        }
-
-        if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE]) && $requestedUser instanceof User) {
-            // The current user must be the same as the requested user or must be an admin
-            if ($currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
-                return true;
-            }
-
             return false;
         }
 
         if (in_array($attribute, [self::CREATE, self::LIST])) {
             // The current user must be admin
             if (in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
+                return true;
+            }
+
+            return false;
+        }
+
+        // The subject must be a User
+        if (!$requestedUser instanceof User) {
+            return false;
+        }
+
+        if (in_array($attribute, [self::READ, self::UPDATE, self::DELETE])) {
+            // The current user must be the same as the requested user or must be an admin
+            if ($currentUser->getId() === $requestedUser->getId() || in_array(User::ROLE_ADMIN, $currentUser->getRoles())) {
                 return true;
             }
 

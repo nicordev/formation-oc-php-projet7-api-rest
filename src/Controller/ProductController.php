@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 
+use App\Annotation\CacheTool;
 use App\Entity\Product;
-use App\Exception\ResourceValidationException;
 use App\Helper\ViolationsTrait;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,14 +13,12 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Swagger\Annotations as SWG;
 
@@ -33,17 +31,17 @@ class ProductController extends AbstractFOSRestController
      *
      * @Get(
      *     path = "/api/products/{id}",
-     *     name = "product_show_id",
+     *     name = "product_show",
      *     requirements = {"id": "\d+"}
      * )
-     * @Get(
-     *     path = "/api/products/{model}",
-     *     name = "product_show_model"
-     * )
-     * @View(serializerGroups = {"product_detail"})
+     * @View()
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a product"
+     * )
+     * @CacheTool(
+     *     isCacheable = true,
+     *     tags = {"product_show"}
      * )
      */
     public function getProductAction(Product $product)
@@ -61,6 +59,7 @@ class ProductController extends AbstractFOSRestController
      * @Rest\QueryParam(
      *     name = "property",
      *     requirements = "id|price|quantity|brand|model",
+     *     strict = true,
      *     default = "price",
      *     description = "Property name required to order results or do a search"
      * )
@@ -92,10 +91,14 @@ class ProductController extends AbstractFOSRestController
      *     default = 5,
      *     description = "Number of items per page"
      * )
-     * @View(serializerGroups = {"product_list"})
+     * @View()
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the list of all products available"
+     * )
+     * @CacheTool(
+     *     isCacheable = true,
+     *     tags = {"product_list"}
      * )
      */
     public function getProductsAction(
@@ -116,13 +119,26 @@ class ProductController extends AbstractFOSRestController
         }
 
         $exactValue = $exact !== "false";
+        $requestedProperties = [
+            "id",
+            "model",
+            "brand",
+            "price",
+            "quantity"
+        ];
         $paginatedProducts = $repository->getPage(
             $page,
             $quantity,
+            $requestedProperties,
             [$property => strtoupper($order)],
             $criteria ?? null,
             $exactValue
         );
+
+        if (!$paginatedProducts) {
+            return $this->view(null, Response::HTTP_NO_CONTENT);
+        }
+
         $paginatedRepresentation = new PaginatedRepresentation(
             new CollectionRepresentation($paginatedProducts[ProductRepository::KEY_PAGING_ENTITIES]),
             "product_list",
@@ -166,6 +182,9 @@ class ProductController extends AbstractFOSRestController
      *     response = 201,
      *     description = "Create a product (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"product_list"}
+     * )
      */
     public function createProductAction(
         Product $newProduct,
@@ -192,8 +211,11 @@ class ProductController extends AbstractFOSRestController
      * @View()
      * @IsGranted("ROLE_ADMIN")
      * @SWG\Response(
-     *     response = 202,
+     *     response = 200,
      *     description = "Update a product (admin only)"
+     * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"product_list", "product_show"}
      * )
      */
     public function editProductAction(
@@ -216,7 +238,7 @@ class ProductController extends AbstractFOSRestController
 
         $manager->flush();
 
-        return $this->view($product, Response::HTTP_ACCEPTED);
+        return $this->view($product, Response::HTTP_OK);
     }
 
     /**
@@ -232,10 +254,14 @@ class ProductController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Delete a product (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"product_list", "product_show"}
+     * )
      */
-    public function deleteProductAction(Product $product, EntityManagerInterface $manager)
-    {
-        $id = $product->getId();
+    public function deleteProductAction(
+        Product $product,
+        EntityManagerInterface $manager
+    ) {
         $manager->remove($product);
         $manager->flush();
 

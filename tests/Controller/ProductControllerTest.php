@@ -68,9 +68,17 @@ class ProductControllerTest extends TestCase
 
         $repository = $this->prophesize(ProductRepository::class);
         $exactValue = $exact !== "false";
+        $requestedProperties = [
+            "id",
+            "model",
+            "brand",
+            "price",
+            "quantity"
+        ];
         $repository->getPage(
             $page,
             $quantity,
+            $requestedProperties,
             [$property => strtoupper($order)],
             null,
             $exactValue
@@ -96,9 +104,8 @@ class ProductControllerTest extends TestCase
             $quantity
         );
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
-
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $responseContent = $response->getData();
         $this->assertInstanceOf(PaginatedRepresentation::class, $responseContent);
         $inline = $responseContent->getInline();
@@ -124,7 +131,11 @@ class ProductControllerTest extends TestCase
         $manager->persist($product)->shouldBeCalled();
         $manager->flush()->shouldBeCalled();
 
-        $response = $controller->createProductAction($product, $manager->reveal(), $violations);
+        $response = $controller->createProductAction(
+            $product,
+            $manager->reveal(),
+            $violations
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -156,9 +167,13 @@ class ProductControllerTest extends TestCase
         $manager->expects($this->never())
             ->method("remove");
 
-        $response = $controller->editProductAction($product, $modifiedProduct, $manager);
+        $response = $controller->editProductAction(
+            $product,
+            $modifiedProduct,
+            $manager
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseProduct = $response->getData();
@@ -176,7 +191,10 @@ class ProductControllerTest extends TestCase
         $manager->flush()->shouldBeCalled();
         $controller = $this->createProductController();
 
-        $response = $controller->deleteProductAction($product, $manager->reveal());
+        $response = $controller->deleteProductAction(
+            $product,
+            $manager->reveal()
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -187,6 +205,9 @@ class ProductControllerTest extends TestCase
     private function createProductController()
     {
         $viewHandler = $this->createMock(ViewHandler::class);
+        $viewHandler->method("handle")
+            ->willReturn(new Response())
+        ;
         $controller = new ProductController();
         $controller->setViewHandler($viewHandler);
 
@@ -205,6 +226,8 @@ class ProductControllerTest extends TestCase
             ->setBrand($brand)
             ->setPrice($price)
             ->setQuantity($quantity)
+            ->setCreatedAt(new \DateTime())
+            ->setUpdatedAt(new \DateTime())
         ;
 
         if ($id) {

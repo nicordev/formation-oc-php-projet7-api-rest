@@ -55,6 +55,7 @@ class CustomerControllerTest extends TestCase
     public function testGetCustomersAction()
     {
         $user = new User();
+        $this->setId($user, 123);
         $controller = $this->createCustomerController($user);
         $page = 1;
         $quantity = 5;
@@ -78,11 +79,19 @@ class CustomerControllerTest extends TestCase
         })();
 
         $repository = $this->prophesize(CustomerRepository::class);
+        $requestedProperties = [
+            "id",
+            "name",
+            "surname",
+            "email",
+            "address"
+        ];
         $repository->getPage(
                 $page,
                 $quantity,
+                $requestedProperties,
                 null,
-                ["user" => $user]
+                ["user" => $user->getId()]
             )
             ->willReturn([
                 PaginatedRepository::KEY_PAGING_ENTITIES => $customers,
@@ -144,7 +153,11 @@ class CustomerControllerTest extends TestCase
             ->method("flush")
         ;
 
-        $response = $controller->createCustomerAction($customer, $manager, $violations);
+        $response = $controller->createCustomerAction(
+            $customer,
+            $manager,
+            $violations
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -178,9 +191,13 @@ class CustomerControllerTest extends TestCase
         $manager->expects($this->never())
             ->method("remove");
 
-        $response = $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
+        $response = $controller->editCustomerAction(
+            $customer,
+            $modifiedCustomer,
+            $manager
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
-        $this->assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
 
         $responseCustomer = $response->getData();
@@ -213,7 +230,11 @@ class CustomerControllerTest extends TestCase
             ->method("remove");
 
         $this->expectException(AccessDeniedException::class);
-        $controller->editCustomerAction($customer, $modifiedCustomer, $manager);
+        $controller->editCustomerAction(
+            $customer,
+            $modifiedCustomer,
+            $manager
+        );
     }
 
     public function testDeleteCustomerAction()
@@ -229,7 +250,10 @@ class CustomerControllerTest extends TestCase
             true
         );
 
-        $response = $controller->deleteCustomerAction($customer, $manager->reveal());
+        $response = $controller->deleteCustomerAction(
+            $customer,
+            $manager->reveal()
+        );
         $this->assertObjectHasAttribute("statusCode", $response);
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $this->assertInstanceOf(View::class, $response);
@@ -249,7 +273,10 @@ class CustomerControllerTest extends TestCase
         );
 
         $this->expectException(AccessDeniedException::class);
-        $controller->deleteCustomerAction($customer, $manager->reveal());
+        $controller->deleteCustomerAction(
+            $customer,
+            $manager->reveal()
+        );
     }
 
     // Private
@@ -300,6 +327,8 @@ class CustomerControllerTest extends TestCase
             ->setSurname($surname)
             ->setEmail($email)
             ->setAddress($address)
+            ->setCreatedAt(new \DateTime())
+            ->setUpdatedAt(new \DateTime())
         ;
 
         if ($id) {

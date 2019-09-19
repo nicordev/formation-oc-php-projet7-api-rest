@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Annotation\CacheTool;
 use App\Entity\User;
+use App\Helper\Cache\Cache;
 use App\Helper\ViolationsTrait;
 use App\Repository\UserRepository;
 use App\Security\UserVoter;
@@ -17,7 +19,6 @@ use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Swagger\Annotations as SWG;
@@ -36,14 +37,14 @@ class UserController extends AbstractFOSRestController
      *     name = "user_show_id",
      *     requirements = {"id": "\d+"}
      * )
-     * @Get(
-     *     path = "/api/users/{name}",
-     *     name = "user_show_name"
-     * )
      * @View()
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a user"
+     * )
+     * @CacheTool(
+     *     isCacheable = true,
+     *     tags = {"user_show"}
      * )
      */
     public function getUserAction(User $user)
@@ -77,6 +78,10 @@ class UserController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Return the list of all users (admin only)"
      * )
+     * @CacheTool(
+     *     isCacheable = true,
+     *     tags = {"user_list"}
+     * )
      */
     public function getUsersAction(
         UserRepository $repository,
@@ -85,12 +90,27 @@ class UserController extends AbstractFOSRestController
     ) {
         $this->denyAccessUnlessGranted(UserVoter::LIST);
 
-        $paginatedUsers = $repository->getPage($page, $quantity);
+        $requestedProperties = [
+            "id",
+            "name",
+            "email",
+            "roles"
+        ];
+        $paginatedUsers = $repository->getPage(
+            $page,
+            $quantity,
+            $requestedProperties
+        );
+
+        if (!$paginatedUsers) {
+            return $this->view(null, Response::HTTP_NO_CONTENT);
+        }
+
         $users = $paginatedUsers[UserRepository::KEY_PAGING_ENTITIES];
 
         $paginatedRepresentation = new PaginatedRepresentation(
             new CollectionRepresentation($users),
-            "product_list",
+            "user_list",
             [
                 "page" => $page,
                 "quantity" => $quantity
@@ -122,6 +142,9 @@ class UserController extends AbstractFOSRestController
      *     response = 201,
      *     description = "Create a user (admin only)"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"user_list"}
+     * )
      */
     public function createUserAction(
         User $newUser,
@@ -135,8 +158,12 @@ class UserController extends AbstractFOSRestController
 
         $encoded = $encoder->encodePassword($newUser, $newUser->getPassword());
         $newUser->setPassword($encoded);
+        if ($newUser->getRoles() === ["ROLE_USER"]) {
+            $newUser->setRoles(["ROLE_USER"]);
+        }
         $manager->persist($newUser);
         $manager->flush();
+        $newUser->setPassword(null);
 
         return $this->view($newUser, Response::HTTP_CREATED);
     }
@@ -154,8 +181,11 @@ class UserController extends AbstractFOSRestController
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
      * @View()
      * @SWG\Response(
-     *     response = 202,
+     *     response = 200,
      *     description = "Update the current user"
+     * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"user_list", "user_show"}
      * )
      */
     public function editUserAction(
@@ -181,8 +211,9 @@ class UserController extends AbstractFOSRestController
         }
 
         $manager->flush();
+        $user->setPassword(null);
 
-        return $this->view($user, Response::HTTP_ACCEPTED);
+        return $this->view($user, Response::HTTP_OK);
     }
 
     /**
@@ -199,9 +230,14 @@ class UserController extends AbstractFOSRestController
      *     response = 200,
      *     description = "Delete the current user"
      * )
+     * @CacheTool(
+     *     tagsToInvalidate = {"user_list", "user_show"}
+     * )
      */
-    public function deleteUserAction(User $user, EntityManagerInterface $manager)
-    {
+    public function deleteUserAction(
+        User $user,
+        EntityManagerInterface $manager
+    ) {
         $this->denyAccessUnlessGranted(UserVoter::DELETE, $user);
 
         $id = $user->getId();
