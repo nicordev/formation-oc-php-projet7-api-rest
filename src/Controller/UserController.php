@@ -85,8 +85,8 @@ class UserController extends AbstractFOSRestController
      */
     public function getUsersAction(
         UserRepository $repository,
-        int $page = 1,
-        int $quantity = 5
+        int $page,
+        int $quantity
     ) {
         $this->denyAccessUnlessGranted(UserVoter::LIST);
 
@@ -158,9 +158,11 @@ class UserController extends AbstractFOSRestController
 
         $encoded = $encoder->encodePassword($newUser, $newUser->getPassword());
         $newUser->setPassword($encoded);
+
         if ($newUser->getRoles() === ["ROLE_USER"]) {
             $newUser->setRoles(["ROLE_USER"]);
         }
+
         $manager->persist($newUser);
         $manager->flush();
         $newUser->setPassword(null);

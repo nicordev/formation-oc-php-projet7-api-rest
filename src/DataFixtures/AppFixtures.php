@@ -15,8 +15,7 @@ class AppFixtures extends Fixture
 {
     use ObjectHelperTrait;
 
-    private $productsCount = 100;
-    private $customersCount = 100;
+    private $customersCount = 1000;
     private $manager;
     /**
      * @var ParameterBagInterface
