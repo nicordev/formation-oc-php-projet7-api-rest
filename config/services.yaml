@@ -28,24 +28,3 @@ services:
 
     App\Controller\CacheController:
         autowire: false
-
-    App\EventListener\HttpCacheListener:
-#        arguments:
-#            $projectDirectory: '%kernel.project_dir%'
-        tags:
-            -
-                {
-                    name: kernel.event_listener,
-                    event: kernel.controller
-                }
-            -
-                {
-                    name: kernel.event_listener,
-                    event: kernel.view,
-                    priority: 100
-                }
-            -
-                {
-                    name: kernel.event_listener,
-                    event: kernel.response
-                }
