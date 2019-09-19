@@ -81,6 +81,11 @@ class HttpCacheListener
     public function onKernelController(ControllerEvent $event)
     {
         $controllerAndMethod = $event->getController();
+
+        if (!is_array($controllerAndMethod) && count($controllerAndMethod) < 2) {
+            return;
+        }
+
         $this->cacheToolAnnotation = $this->annotationReadingTool->getMethodAnnotation(
             CacheTool::class,
             get_class($controllerAndMethod[0]),
