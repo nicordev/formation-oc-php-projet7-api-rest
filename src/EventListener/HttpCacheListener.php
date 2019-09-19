@@ -82,7 +82,7 @@ class HttpCacheListener
     {
         $controllerAndMethod = $event->getController();
 
-        if (!is_array($controllerAndMethod) && count($controllerAndMethod) < 2) {
+        if (!is_array($controllerAndMethod)) {
             return;
         }
 
