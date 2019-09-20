@@ -10,9 +10,9 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class CustomerVoter extends Voter
 {
-    public const READ = "read";
-    public const UPDATE = "update";
-    public const DELETE = "delete";
+    public const READ = "customer-read";
+    public const UPDATE = "customer-update";
+    public const DELETE = "customer-delete";
 
     public const ACTIONS = [
         self::READ,
