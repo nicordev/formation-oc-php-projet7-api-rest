@@ -35,6 +35,12 @@ class CustomerController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the customer"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a customer"
@@ -169,6 +175,12 @@ class CustomerController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedCustomer", converter="fos_rest.request_body")
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the customer"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Update a customer of the current user"
@@ -210,6 +222,12 @@ class CustomerController extends AbstractFOSRestController
      *     name = "customer_delete"
      * )
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the customer"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Delete a customer of the current user"

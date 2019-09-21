@@ -38,6 +38,12 @@ class UserController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the user"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a user"
@@ -182,6 +188,12 @@ class UserController extends AbstractFOSRestController
      * )
      * @ParamConverter("modifiedUser", converter="fos_rest.request_body")
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the user"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Update the current user"
@@ -228,6 +240,12 @@ class UserController extends AbstractFOSRestController
      *     name = "user_delete"
      * )
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the user"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Delete the current user"

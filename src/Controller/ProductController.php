@@ -35,6 +35,12 @@ class ProductController extends AbstractFOSRestController
      *     requirements = {"id": "\d+"}
      * )
      * @View()
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the product"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Return the detail of a product"
@@ -210,6 +216,12 @@ class ProductController extends AbstractFOSRestController
      * @ParamConverter("modifiedProduct", converter="fos_rest.request_body")
      * @View()
      * @IsGranted("ROLE_ADMIN")
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the product"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Update a product (admin only)"
@@ -250,6 +262,12 @@ class ProductController extends AbstractFOSRestController
      * )
      * @View()
      * @IsGranted("ROLE_ADMIN")
+     * @SWG\Parameter(
+     *     name = "id",
+     *     in = "path",
+     *     type = "integer",
+     *     description = "The id of the product"
+     * )
      * @SWG\Response(
      *     response = 200,
      *     description = "Delete a product (admin only)"
